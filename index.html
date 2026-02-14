@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2026 Winter Olympics Medal Leaderboard</title>
+  <style>
+    :root {
+      --bg: #f3f4f6;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --gold: #f2c14e;
+      --silver: #c4c4c4;
+      --bronze: #b36a1f;
+      --accent: #1f2937;
+      --shadow: 0 8px 24px rgba(17, 24, 39, 0.06);
+    }
+
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --card: #111827;
+      --text: #f9fafb;
+      --muted: #9ca3af;
+      --line: #29303f;
+      --gold: #e9b949;
+      --silver: #b8bec8;
+      --bronze: #b46f2f;
+      --accent: #e5e7eb;
+      --shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      overflow-x: hidden;
+    }
+
+    body {
+      margin: 0;
+      background: radial-gradient(circle at 0% 0%, rgba(52, 211, 153, 0.08), transparent 35%), var(--bg);
+      color: var(--text);
+      font-family: "Futura", "Futura PT", "Avenir Next", "Segoe UI", Roboto, Arial, sans-serif;
+    }
+
+    .page {
+      width: min(1100px, 100%);
+      margin: 0 auto;
+      padding: 24px 16px 20px;
+      display: grid;
+      gap: 20px;
+    }
+
+    .panel {
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    .title-section {
+      padding: 10px 20px 0;
+      display: grid;
+      gap: 8px;
+    }
+
+    .podium-section {
+      padding: 96px 20px 64px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .title-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0;
+      align-items: baseline;
+      text-align: center;
+      width: 100%;
+    }
+
+    h1 {
+      margin: 0;
+      letter-spacing: 0.02em;
+      line-height: 1.05;
+      display: grid;
+      gap: 2px;
+      justify-items: center;
+      text-transform: uppercase;
+      width: 100%;
+    }
+
+    .title-top {
+      font-size: clamp(1rem, 2vw, 1.35rem);
+      font-weight: 650;
+      color: var(--muted);
+    }
+
+    .title-bottom {
+      font-size: clamp(1.7rem, 4.2vw, 3rem);
+      font-family: "Futura Bold", "Futura", "Futura PT", sans-serif;
+      font-weight: 700;
+      font-style: normal;
+      color: var(--text);
+    }
+
+    .meta {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .podium-updated {
+      text-align: center;
+    }
+
+    .podium {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0;
+      align-items: end;
+      min-height: 250px;
+      padding-top: 78px;
+    }
+
+    .podium-card {
+      border: 1px solid var(--line);
+      border-radius: 0;
+      position: relative;
+      display: grid;
+      place-items: center;
+      padding: 8px;
+      text-align: center;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent);
+      overflow: visible;
+    }
+
+    .podium-card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 14px;
+      height: 2px;
+      background: rgba(17, 24, 39, 0.18);
+      pointer-events: none;
+    }
+
+    .podium-card + .podium-card {
+      border-left: 0;
+    }
+
+    .rank-1 {
+      min-height: 140px;
+      background: linear-gradient(180deg, rgba(242, 193, 78, 0.95), rgba(214, 164, 45, 0.92));
+      border-color: rgba(168, 118, 10, 0.45);
+      border-left: 1px solid rgba(168, 118, 10, 0.45);
+    }
+    .rank-1::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: rgba(155, 106, 8, 0.55);
+      pointer-events: none;
+    }
+    .rank-2 {
+      min-height: 110px;
+      background: linear-gradient(180deg, rgba(212, 215, 220, 0.96), rgba(176, 182, 190, 0.92));
+      border-color: rgba(120, 128, 138, 0.5);
+      border-right: 0;
+    }
+    .rank-3 {
+      min-height: 92px;
+      background: linear-gradient(180deg, rgba(190, 123, 70, 0.96), rgba(162, 97, 48, 0.92));
+      border-color: rgba(112, 63, 27, 0.55);
+    }
+
+    .podium-flag { line-height: 1; }
+    .podium-flag-img {
+      width: 116px;
+      height: auto;
+      border: 1px solid rgba(17, 24, 39, 0.16);
+      display: block;
+    }
+
+    .podium-floating {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      display: grid;
+      justify-items: center;
+      gap: 5px;
+      min-width: 120px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .podium-country { font-weight: 700; font-size: 0.95rem; }
+    .podium-count { color: var(--muted); font-size: 0.85rem; }
+    .podium-rings {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+    }
+
+    .podium-rings-img {
+      width: 52px;
+      height: auto;
+      display: block;
+      opacity: 0.25;
+      filter: none;
+    }
+
+    .table-wrap { padding: 8px 0 4px; overflow-x: hidden; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 0;
+      table-layout: fixed;
+    }
+
+    thead th {
+      text-transform: uppercase;
+      font-size: 0.8rem;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      font-weight: 700;
+      text-align: left;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      white-space: nowrap;
+    }
+
+    .sort-head {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      text-transform: inherit;
+      letter-spacing: inherit;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .sort-arrow {
+      visibility: hidden;
+      font-size: 0.75rem;
+      line-height: 1;
+    }
+
+    .sort-arrow.active {
+      visibility: visible;
+    }
+
+    tbody td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      font-size: 1rem;
+    }
+
+    tbody tr:hover { background: rgba(156, 163, 175, 0.08); }
+
+    .country-cell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+    }
+
+    .rank-col { width: 56px; text-align: center; }
+    .rank-cell {
+      text-align: center;
+      color: var(--muted);
+      font-weight: 700;
+      width: 56px;
+    }
+
+    .flag {
+      width: 34px;
+      text-align: center;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .flag-img {
+      width: 28px;
+      height: auto;
+      border: 1px solid rgba(17, 24, 39, 0.15);
+      display: block;
+    }
+
+    .flag-fallback {
+      font-size: 1.35rem;
+      line-height: 1;
+    }
+
+    .metric { text-align: center; width: 90px; }
+    .total {
+      font-family: "Futura Bold", "Futura", "Futura PT", sans-serif;
+      font-weight: 700;
+    }
+
+    .dots {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 0;
+      min-height: 20px;
+      align-items: center;
+      overflow: visible;
+    }
+
+    .dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      border: 2px solid var(--bg);
+      flex: 0 0 auto;
+      margin-left: -4px;
+    }
+
+    .dot:first-child {
+      margin-left: 0;
+    }
+
+    .dot.gold { background: var(--gold); }
+    .dot.silver { background: var(--silver); }
+    .dot.bronze { background: var(--bronze); }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    select {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: 0.9rem;
+    }
+
+    footer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      padding: 2px 4px 10px;
+    }
+
+    a { color: inherit; }
+
+    @media (max-width: 980px) {
+      .page { padding: 18px 12px 14px; gap: 14px; }
+      .title-section { padding: 8px 10px 0; }
+      .podium-section { padding: 72px 10px 44px; }
+      .podium { min-height: 230px; padding-top: 68px; }
+      .podium-flag-img { width: 92px; }
+    }
+
+    @media (max-width: 820px) {
+      .rank-col, .rank-cell { width: 44px; }
+      .metric { width: 72px; }
+      tbody td { padding: 11px 8px; }
+      thead th { padding: 10px 8px; }
+      .country-cell { gap: 8px; }
+    }
+
+    @media (max-width: 740px) {
+      #thBreakdown, td:last-child { display: none; }
+    }
+
+    @media (max-width: 720px) {
+      .podium-section { padding: 56px 6px 34px; }
+      .podium { min-height: 196px; padding: 56px 6px 0; }
+      .podium-floating { min-width: 96px; gap: 3px; bottom: calc(100% + 6px); }
+      .podium-flag-img { width: 72px; }
+      .podium-country { font-size: 0.86rem; }
+      .podium-count { font-size: 0.78rem; }
+      .podium-rings-img { width: 42px; }
+      .rank-1 { min-height: 112px; }
+      .rank-2 { min-height: 90px; }
+      .rank-3 { min-height: 76px; }
+      tbody td { padding: 11px 8px; font-size: 0.92rem; }
+      thead th { padding: 10px 8px; font-size: 0.72rem; }
+      .flag { width: 30px; }
+      .flag-img { width: 24px; }
+      .dot { width: 12px; height: 12px; margin-left: -3px; }
+      footer { justify-content: center; text-align: center; gap: 8px; }
+      .control-group { justify-content: center; }
+    }
+
+    @media (max-width: 560px) {
+      .page { padding: 12px 8px 12px; }
+      .title-section { padding: 6px 0 0; }
+      h1 { gap: 0; }
+      .title-top { font-size: 0.86rem; }
+      .title-bottom { font-size: clamp(1.1rem, 7.2vw, 1.55rem); letter-spacing: 0.01em; }
+      .podium-section { padding: 48px 0 24px; gap: 10px; }
+      .podium { min-height: 180px; padding: 52px 8px 0; }
+      .podium-flag-img { width: 58px; }
+      .podium-country { font-size: 0.8rem; }
+      .podium-count { font-size: 0.74rem; }
+      .podium-rings-img { width: 36px; }
+      .podium-card { padding: 6px; }
+      .podium-card::before { top: 10px; }
+      .rank-1 { min-height: 100px; }
+      .rank-2 { min-height: 82px; }
+      .rank-3 { min-height: 70px; }
+      table { width: 100%; }
+      .rank-col, .rank-cell { width: 40px; }
+      .metric { width: 68px; }
+      .dot { width: 10px; height: 10px; margin-left: -2px; border-width: 1.5px; }
+      .control-group { width: 100%; }
+      #officialLink { width: 100%; }
+      #madeBy { width: 100%; }
+    }
+
+    @media (max-width: 420px) {
+      .title-bottom { font-size: 1rem; }
+      .title-top { font-size: 0.74rem; }
+      .metric { width: 56px; }
+      .rank-col, .rank-cell { width: 32px; }
+      tbody td { padding: 9px 6px; font-size: 0.86rem; }
+      thead th { padding: 8px 6px; font-size: 0.66rem; }
+      .flag { width: 24px; }
+      .flag-img { width: 20px; }
+    }
+  </style>
+</head>
+<body data-theme="light">
+  <main class="page">
+    <section class="panel title-section">
+      <div class="title-row">
+        <h1 id="title">
+          <span class="title-top">2026 Winter Olympics</span>
+          <span class="title-bottom">Medal Leaderboard</span>
+        </h1>
+      </div>
+    </section>
+
+    <section class="panel podium-section">
+      <div class="podium" id="podium"></div>
+      <div class="meta podium-updated" id="status">Loading medal data...</div>
+    </section>
+
+    <section class="panel">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="rank-col" id="thRank">Rank</th>
+              <th id="thCountry">Country</th>
+              <th class="metric" id="thGold" data-sort="gold"></th>
+              <th class="metric" id="thSilver" data-sort="silver"></th>
+              <th class="metric" id="thBronze" data-sort="bronze"></th>
+              <th class="metric" id="thTotal" data-sort="total"></th>
+              <th id="thBreakdown">Breakdown</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>
+      <a id="officialLink" href="https://www.olympics.com/en/milano-cortina-2026/medals" target="_blank" rel="noopener noreferrer">
+        Official Milano-Cortina Medal Table
+      </a>
+      <div class="control-group">
+        <label for="languagePicker" id="langLabel">Language</label>
+        <select id="languagePicker">
+          <option value="en">English</option>
+          <option value="it">Italiano</option>
+          <option value="es">Español</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label for="themePicker" id="themeLabel">Theme</label>
+        <select id="themePicker">
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </div>
+      <div id="madeBy">Made with ❤️ by <a id="designerLink" href="https://www.instagram.com/mattprina_design/" target="_blank" rel="noopener noreferrer">Matt Prina Design</a></div>
+    </footer>
+  </main>
+
+  <script>
+    const REFRESH_MS = 10 * 60 * 1000;
+    const SOURCE_URL = "https://www.olympics.com/en/milano-cortina-2026/medals";
+    const PROXY_URL = "https://r.jina.ai/http://www.olympics.com/en/milano-cortina-2026/medals";
+
+    const FALLBACK_MEDALS = [
+      { noc: "NOR", country: "Norway", gold: 8, silver: 3, bronze: 7 },
+      { noc: "ITA", country: "Italy", gold: 6, silver: 3, bronze: 9 },
+      { noc: "USA", country: "United States", gold: 4, silver: 7, bronze: 3 },
+      { noc: "AUT", country: "Austria", gold: 3, silver: 6, bronze: 3 },
+      { noc: "JPN", country: "Japan", gold: 3, silver: 2, bronze: 7 },
+      { noc: "GER", country: "Germany", gold: 4, silver: 4, bronze: 3 },
+      { noc: "FRA", country: "France", gold: 4, silver: 5, bronze: 1 },
+      { noc: "SWE", country: "Sweden", gold: 4, silver: 3, bronze: 1 },
+      { noc: "SUI", country: "Switzerland", gold: 4, silver: 1, bronze: 2 },
+      { noc: "NED", country: "Netherlands", gold: 3, silver: 3, bronze: 1 },
+      { noc: "CAN", country: "Canada", gold: 3, silver: 2, bronze: 4 },
+      { noc: "FIN", country: "Finland", gold: 2, silver: 3, bronze: 3 },
+      { noc: "CHN", country: "China", gold: 2, silver: 2, bronze: 2 },
+      { noc: "KOR", country: "South Korea", gold: 2, silver: 1, bronze: 2 },
+      { noc: "GBR", country: "Great Britain", gold: 1, silver: 2, bronze: 2 },
+      { noc: "CZE", country: "Czechia", gold: 1, silver: 2, bronze: 1 },
+      { noc: "SLO", country: "Slovenia", gold: 1, silver: 1, bronze: 2 },
+      { noc: "POL", country: "Poland", gold: 1, silver: 1, bronze: 1 },
+      { noc: "AUS", country: "Australia", gold: 1, silver: 1, bronze: 1 },
+      { noc: "NZL", country: "New Zealand", gold: 1, silver: 1, bronze: 0 },
+      { noc: "ESP", country: "Spain", gold: 1, silver: 0, bronze: 1 },
+      { noc: "LAT", country: "Latvia", gold: 0, silver: 1, bronze: 1 },
+      { noc: "SVK", country: "Slovakia", gold: 0, silver: 1, bronze: 1 }
+    ];
+
+    const COUNTRY_TO_NOC = {
+      "Australia": "AUS", "Austria": "AUT", "Belarus": "BLR", "Belgium": "BEL", "Bulgaria": "BUL",
+      "Canada": "CAN", "China": "CHN", "Croatia": "CRO", "Czech Republic": "CZE", "Czechia": "CZE",
+      "Denmark": "DEN", "Estonia": "EST", "Finland": "FIN", "France": "FRA", "Germany": "GER",
+      "Great Britain": "GBR", "United Kingdom": "GBR", "Greece": "GRE", "Hungary": "HUN",
+      "Ireland": "IRL", "Italy": "ITA", "Japan": "JPN", "Kazakhstan": "KAZ", "Latvia": "LAT",
+      "Lithuania": "LTU", "Netherlands": "NED", "New Zealand": "NZL", "Norway": "NOR",
+      "Poland": "POL", "Romania": "ROU", "Serbia": "SRB", "Slovakia": "SVK", "Slovenia": "SLO",
+      "South Korea": "KOR", "Korea": "KOR", "Spain": "ESP", "Sweden": "SWE", "Switzerland": "SUI",
+      "Ukraine": "UKR", "United States": "USA", "USA": "USA"
+    };
+
+    const NOC_TO_COUNTRY = {
+      AUS: "Australia", AUT: "Austria", BEL: "Belgium", BLR: "Belarus", BUL: "Bulgaria", CAN: "Canada",
+      CHN: "China", CRO: "Croatia", CZE: "Czechia", DEN: "Denmark", EST: "Estonia", FIN: "Finland",
+      FRA: "France", GBR: "Great Britain", GER: "Germany", GRE: "Greece", HUN: "Hungary", IRL: "Ireland",
+      ITA: "Italy", JPN: "Japan", KAZ: "Kazakhstan", KOR: "South Korea", LAT: "Latvia", LTU: "Lithuania",
+      NED: "Netherlands", NOR: "Norway", NZL: "New Zealand", POL: "Poland", ROU: "Romania",
+      SRB: "Serbia", SLO: "Slovenia", SVK: "Slovakia", ESP: "Spain", SWE: "Sweden", SUI: "Switzerland",
+      UKR: "Ukraine", USA: "United States"
+    };
+
+    const NOC_TO_ISO2 = {
+      AUS: "AU", AUT: "AT", BEL: "BE", BLR: "BY", BUL: "BG", CAN: "CA", CHN: "CN", CRO: "HR",
+      CZE: "CZ", DEN: "DK", EST: "EE", FIN: "FI", FRA: "FR", GBR: "GB", GER: "DE", GRE: "GR",
+      HUN: "HU", IRL: "IE", ITA: "IT", JPN: "JP", KAZ: "KZ", KOR: "KR", LAT: "LV", LTU: "LT",
+      NED: "NL", NOR: "NO", NZL: "NZ", POL: "PL", ROU: "RO", SRB: "RS", SLO: "SI", SVK: "SK",
+      ESP: "ES", SWE: "SE", SUI: "CH", UKR: "UA", USA: "US"
+    };
+
+    const STRINGS = {
+      en: {
+        titleTop: "2026 Winter Olympics",
+        titleBottom: "Medal Leaderboard",
+        rank: "Rank",
+        country: "Country",
+        gold: "Gold",
+        silver: "Silver",
+        bronze: "Bronze",
+        total: "Total",
+        breakdown: "Breakdown",
+        officialLink: "Offical Olympics Website",
+        language: "Language",
+        theme: "Theme",
+        light: "Light",
+        dark: "Dark",
+        madeBy: "Made with ❤️ by Matt Prina Design",
+        loading: "Loading medal data...",
+        refresh: "Auto-refresh every 10 minutes",
+        updated: "Updated"
+      },
+      it: {
+        titleTop: "Olimpiadi Invernali 2026",
+        titleBottom: "Classifica Medaglie",
+        rank: "Pos.",
+        country: "Paese",
+        gold: "Oro",
+        silver: "Argento",
+        bronze: "Bronzo",
+        total: "Totale",
+        breakdown: "Dettaglio",
+        officialLink: "Offical Olympics Website",
+        language: "Lingua",
+        theme: "Tema",
+        light: "Chiaro",
+        dark: "Scuro",
+        madeBy: "Made with ❤️ by Matt Prina Design",
+        loading: "Caricamento dati medaglie...",
+        refresh: "Aggiornamento automatico ogni 10 minuti",
+        updated: "Aggiornato"
+      },
+      es: {
+        titleTop: "Juegos Olímpicos de Invierno 2026",
+        titleBottom: "Tabla de Medallas",
+        rank: "Puesto",
+        country: "País",
+        gold: "Oro",
+        silver: "Plata",
+        bronze: "Bronce",
+        total: "Total",
+        breakdown: "Desglose",
+        officialLink: "Offical Olympics Website",
+        language: "Idioma",
+        theme: "Tema",
+        light: "Claro",
+        dark: "Oscuro",
+        madeBy: "Made with ❤️ by Matt Prina Design",
+        loading: "Cargando datos de medallas...",
+        refresh: "Actualización automática cada 10 minutos",
+        updated: "Actualizado"
+      }
+    };
+
+    const state = {
+      medals: [],
+      sortBy: "total",
+      language: "en",
+      theme: "light"
+    };
+
+    function sanitizeCountryName(raw) {
+      return raw
+        .replace(/\s*\([^)]+\)\s*/g, " ")
+        .replace(/_/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function isLikelyEventName(value) {
+      const text = value.toLowerCase();
+      return (
+        text.includes("ski") ||
+        text.includes("snowboard") ||
+        text.includes("biathlon") ||
+        text.includes("curling") ||
+        text.includes("bobsleigh") ||
+        text.includes("luge") ||
+        text.includes("skeleton") ||
+        text.includes("hockey") ||
+        text.includes("skating") ||
+        text.includes("freestyle") ||
+        text.includes("women") ||
+        text.includes("men") ||
+        text.includes("mixed") ||
+        text.includes("relay") ||
+        text.includes("final") ||
+        text.includes("qualification") ||
+        text.includes("event")
+      );
+    }
+
+    function resolveNoc(country, noc) {
+      if (/^[A-Z]{3}$/.test(noc) && NOC_TO_ISO2[noc]) return noc;
+      return COUNTRY_TO_NOC[country] || "";
+    }
+
+    function normalizeRows(rows) {
+      return rows
+        .map((row) => {
+          const gold = Number(row.gold ?? row.g ?? row.medalsGold ?? 0);
+          const silver = Number(row.silver ?? row.s ?? row.medalsSilver ?? 0);
+          const bronze = Number(row.bronze ?? row.b ?? row.medalsBronze ?? 0);
+          const rawCountry = (row.country ?? row.name ?? row.team ?? row.nocName ?? "").toString().trim();
+          let country = sanitizeCountryName(rawCountry);
+          const nocValue = (row.noc ?? row.code ?? row.nocCode ?? row.countryCode ?? "").toString().trim().toUpperCase();
+          const noc = resolveNoc(country, nocValue);
+          if (!country && noc && NOC_TO_COUNTRY[noc]) country = NOC_TO_COUNTRY[noc];
+          if (
+            !country ||
+            Number.isNaN(gold) ||
+            Number.isNaN(silver) ||
+            Number.isNaN(bronze) ||
+            !noc ||
+            isLikelyEventName(country)
+          ) {
+            return null;
+          }
+          return { country: NOC_TO_COUNTRY[noc] || country, noc, gold, silver, bronze, total: gold + silver + bronze };
+        })
+        .filter(Boolean)
+        .filter((row) => row.total > 0);
+    }
+
+    function flagFromNoc(noc) {
+      const iso = NOC_TO_ISO2[noc];
+      if (!iso || iso.length !== 2) return "🏳️";
+      return String.fromCodePoint(127397 + iso.charCodeAt(0), 127397 + iso.charCodeAt(1));
+    }
+
+    function flagImageUrl(noc, width) {
+      const iso = NOC_TO_ISO2[noc];
+      if (!iso || iso.length !== 2) return "";
+      return `https://flagcdn.com/w${width}/${iso.toLowerCase()}.png`;
+    }
+
+    function extractMedalsDeep(node, output) {
+      if (!node) return;
+      if (Array.isArray(node)) {
+        const normalized = normalizeRows(node);
+        if (normalized.length >= 5) {
+          output.push(...normalized);
+          return;
+        }
+        node.forEach((item) => extractMedalsDeep(item, output));
+        return;
+      }
+      if (typeof node !== "object") return;
+
+      const keys = Object.keys(node);
+      for (let i = 0; i < keys.length; i += 1) {
+        extractMedalsDeep(node[keys[i]], output);
+      }
+    }
+
+    function parseRowsFromHtml(html) {
+      const scripts = [...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/gi)];
+      const collected = [];
+
+      for (let i = 0; i < scripts.length; i += 1) {
+        const raw = scripts[i][1].trim();
+        if (!raw) continue;
+        if (raw.startsWith("{") || raw.startsWith("[")) {
+          try {
+            const parsed = JSON.parse(raw);
+            extractMedalsDeep(parsed, collected);
+          } catch (_) {}
+        }
+        const nextMatch = raw.match(/__NEXT_DATA__\s*=\s*(\{[\s\S]*\});?/);
+        if (nextMatch) {
+          try {
+            const parsed = JSON.parse(nextMatch[1]);
+            extractMedalsDeep(parsed, collected);
+          } catch (_) {}
+        }
+      }
+
+      const byCountry = new Map();
+      for (let i = 0; i < collected.length; i += 1) {
+        const item = collected[i];
+        const key = `${item.country}|${item.noc}`;
+        if (!byCountry.has(key) || byCountry.get(key).total < item.total) {
+          byCountry.set(key, item);
+        }
+      }
+      const valid = [...byCountry.values()].filter((row) => NOC_TO_ISO2[row.noc]);
+      return valid.length >= 5 ? valid : [];
+    }
+
+    async function fetchOfficialData() {
+      const urls = [SOURCE_URL, PROXY_URL];
+      for (let i = 0; i < urls.length; i += 1) {
+        try {
+          const res = await fetch(urls[i], { cache: "no-store" });
+          if (!res.ok) continue;
+          const html = await res.text();
+          const rows = parseRowsFromHtml(html);
+          if (rows.length > 0) return { rows, live: true };
+        } catch (_) {}
+      }
+      const fallback = FALLBACK_MEDALS.map((d) => ({ ...d, total: d.gold + d.silver + d.bronze }));
+      return { rows: fallback, live: false };
+    }
+
+    function sortRows(rows, sortBy) {
+      const ordered = [...rows];
+      ordered.sort((a, b) => {
+        const byTotal = b.total - a.total;
+        const byGold = b.gold - a.gold;
+        const bySilver = b.silver - a.silver;
+        const byBronze = b.bronze - a.bronze;
+        const byName = a.country.localeCompare(b.country);
+
+        if (sortBy === "gold") return byGold || bySilver || byBronze || byTotal || byName;
+        if (sortBy === "silver") return bySilver || byGold || byBronze || byTotal || byName;
+        if (sortBy === "bronze") return byBronze || byGold || bySilver || byTotal || byName;
+        return byTotal || byGold || bySilver || byBronze || byName;
+      });
+      return ordered;
+    }
+
+    function medalDots(row) {
+      const dots = [];
+      for (let i = 0; i < row.gold; i += 1) dots.push('<span class="dot gold"></span>');
+      for (let i = 0; i < row.silver; i += 1) dots.push('<span class="dot silver"></span>');
+      for (let i = 0; i < row.bronze; i += 1) dots.push('<span class="dot bronze"></span>');
+      return dots.join("");
+    }
+
+    function renderPodium(rows) {
+      const podium = document.getElementById("podium");
+      const top = rows.slice(0, 3);
+      const order = [1, 0, 2];
+      const rankClass = ["rank-2", "rank-1", "rank-3"];
+
+      podium.innerHTML = order.map((idx, col) => {
+        const item = top[idx];
+        if (!item) {
+          return `
+            <div class="podium-card ${rankClass[col]}">
+              <div class="podium-rings" aria-label="Olympic rings symbol">
+                <img class="podium-rings-img" src="images/olympics-1.svg" alt="Olympic rings">
+              </div>
+            </div>
+          `;
+        }
+        const flagEmoji = flagFromNoc(item.noc);
+        const flagUrl = flagImageUrl(item.noc, 80);
+        return `
+          <article class="podium-card ${rankClass[col]}">
+            <div class="podium-floating">
+              <div class="podium-flag">
+                ${flagUrl
+                  ? `<img class="podium-flag-img" src="${flagUrl}" alt="${item.country} flag" onerror="this.outerHTML='${flagEmoji}'">`
+                  : `<span class="flag-fallback" aria-hidden="true">${flagEmoji}</span>`
+                }
+              </div>
+              <div class="podium-country">${item.country}</div>
+              <div class="podium-count">${item.total} total</div>
+            </div>
+            <div class="podium-rings" aria-label="Olympic rings symbol">
+              <img class="podium-rings-img" src="images/olympics-1.svg" alt="Olympic rings">
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function renderTable(rows) {
+      const body = document.getElementById("rows");
+      body.innerHTML = rows.map((row, index) => {
+        const flagEmoji = flagFromNoc(row.noc);
+        const flagUrl = flagImageUrl(row.noc, 40);
+        return `
+          <tr>
+            <td class="rank-cell">${index + 1}</td>
+            <td>
+              <div class="country-cell">
+                <span class="flag">
+                  ${flagUrl
+                    ? `<img class="flag-img" src="${flagUrl}" alt="${row.country} flag" onerror="this.outerHTML='<span class=&quot;flag-fallback&quot; aria-hidden=&quot;true&quot;>${flagEmoji}</span>'">`
+                    : `<span class="flag-fallback" aria-hidden="true">${flagEmoji}</span>`
+                  }
+                </span>
+                <span>${row.country}</span>
+              </div>
+            </td>
+            <td class="metric">${row.gold}</td>
+            <td class="metric">${row.silver}</td>
+            <td class="metric">${row.bronze}</td>
+            <td class="metric total">${row.total}</td>
+            <td><div class="dots" aria-label="Medal breakdown">${medalDots(row)}</div></td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function applyStrings() {
+      const t = STRINGS[state.language];
+      document.documentElement.lang = state.language;
+      document.getElementById("title").innerHTML = `<span class="title-top">${t.titleTop}</span><span class="title-bottom">${t.titleBottom}</span>`;
+      document.getElementById("thRank").textContent = t.rank;
+      document.getElementById("thCountry").textContent = t.country;
+      setSortableHeader("thGold", t.gold, "gold");
+      setSortableHeader("thSilver", t.silver, "silver");
+      setSortableHeader("thBronze", t.bronze, "bronze");
+      setSortableHeader("thTotal", t.total, "total");
+      document.getElementById("thBreakdown").textContent = t.breakdown;
+      document.getElementById("officialLink").textContent = t.officialLink;
+      document.getElementById("langLabel").textContent = t.language;
+      document.getElementById("themeLabel").textContent = t.theme;
+      document.getElementById("madeBy").innerHTML = `Made with ❤️ by <a id="designerLink" href="https://www.instagram.com/mattprina_design/" target="_blank" rel="noopener noreferrer">Matt Prina Design</a>`;
+
+      const themePicker = document.getElementById("themePicker");
+      themePicker.options[0].text = t.light;
+      themePicker.options[1].text = t.dark;
+
+      renderSortIndicators();
+    }
+
+    function setSortableHeader(id, label, key) {
+      const th = document.getElementById(id);
+      th.innerHTML = `
+        <button class="sort-head" type="button" data-sort="${key}">
+          <span>${label}</span>
+          <span class="sort-arrow${state.sortBy === key ? " active" : ""}" aria-hidden="true">▼</span>
+        </button>
+      `;
+    }
+
+    function renderSortIndicators() {
+      const arrows = document.querySelectorAll(".sort-arrow");
+      arrows.forEach((arrow) => arrow.classList.remove("active"));
+      const active = document.querySelector(`.sort-head[data-sort="${state.sortBy}"] .sort-arrow`);
+      if (active) active.classList.add("active");
+    }
+
+    function render() {
+      const sorted = sortRows(state.medals, state.sortBy);
+      renderPodium(sorted);
+      renderTable(sorted);
+      renderSortIndicators();
+    }
+
+    async function loadData() {
+      const t = STRINGS[state.language];
+      document.getElementById("status").textContent = t.loading;
+      const result = await fetchOfficialData();
+      state.medals = result.rows;
+      render();
+
+      const now = new Date();
+      const stamp = now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+      document.getElementById("status").textContent = `${t.updated}: ${stamp}`;
+    }
+
+    function init() {
+      applyStrings();
+      document.getElementById("languagePicker").value = state.language;
+      document.getElementById("themePicker").value = state.theme;
+
+      document.addEventListener("click", (e) => {
+        const trigger = e.target.closest(".sort-head");
+        if (!trigger) return;
+        state.sortBy = trigger.dataset.sort || "total";
+        render();
+      });
+
+      document.getElementById("languagePicker").addEventListener("change", (e) => {
+        state.language = e.target.value;
+        applyStrings();
+        render();
+      });
+
+      document.getElementById("themePicker").addEventListener("change", (e) => {
+        state.theme = e.target.value;
+        document.body.setAttribute("data-theme", state.theme);
+      });
+
+      loadData();
+      setInterval(loadData, REFRESH_MS);
+    }
+
+    init();
+  </script>
+</body>
+</html>

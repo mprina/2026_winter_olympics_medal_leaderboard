@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Snake</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: #141821;
+      --text: #e6e6e6;
+      --muted: #9aa3b2;
+      --snake: #4cd964;
+      --food: #ff3b30;
+      --grid: #1f2532;
+      --accent: #2c3346;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      background: var(--bg);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+      padding: 16px;
+    }
+    .wrap {
+      width: min(520px, 100%);
+      display: grid;
+      gap: 12px;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--accent);
+      border-radius: 10px;
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+    .hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+    }
+    .hud .label { color: var(--muted); }
+    canvas {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #0b0d12;
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      image-rendering: pixelated;
+    }
+    .controls {
+      display: none;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      justify-items: center;
+    }
+    .controls button {
+      width: 100%;
+      padding: 10px 0;
+      background: #0f1420;
+      border: 1px solid var(--accent);
+      color: var(--text);
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .controls button:active { transform: translateY(1px); }
+    .row { display: contents; }
+    .footer {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    @media (pointer: coarse) {
+      .controls { display: grid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="panel">
+      <div class="hud">
+        <div><span class="label">Score</span> <span id="score">0</span></div>
+        <div><span class="label">Best</span> <span id="best">0</span></div>
+        <div><span class="label">Status</span> <span id="status">Running</span></div>
+      </div>
+      <canvas id="game" width="320" height="320" aria-label="Snake game"></canvas>
+    </div>
+
+    <div class="panel controls" aria-label="Touch controls">
+      <div class="row">
+        <button data-dir="up">Up</button>
+      </div>
+      <div class="row">
+        <button data-dir="left">Left</button>
+        <button data-dir="down">Down</button>
+        <button data-dir="right">Right</button>
+      </div>
+    </div>
+
+    <div class="footer">
+      Controls: Arrow keys / WASD. Restart: R.
+    </div>
+  </div>
+
+  <script>
+    // Deterministic RNG for testable food placement
+    function createRng(seed = 123456789) {
+      let s = seed >>> 0;
+      return function rng() {
+        s = (1664525 * s + 1013904223) >>> 0;
+        return s / 4294967296;
+      };
+    }
+
+    const GRID_SIZE = 20;
+    const TICK_MS = 120;
+
+    function posKey(p) { return `${p.x},${p.y}`; }
+
+    function nextHead(head, dir) {
+      if (dir === 'up') return { x: head.x, y: head.y - 1 };
+      if (dir === 'down') return { x: head.x, y: head.y + 1 };
+      if (dir === 'left') return { x: head.x - 1, y: head.y };
+      return { x: head.x + 1, y: head.y }; // right
+    }
+
+    function placeFood(snake, size, rng) {
+      const occupied = new Set(snake.map(posKey));
+      const empty = [];
+      for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+          const key = `${x},${y}`;
+          if (!occupied.has(key)) empty.push({ x, y });
+        }
+      }
+      if (empty.length === 0) return null;
+      const idx = Math.floor(rng() * empty.length);
+      return empty[idx];
+    }
+
+    function createGame(size, rng) {
+      const mid = Math.floor(size / 2);
+      const snake = [
+        { x: mid, y: mid },
+        { x: mid - 1, y: mid },
+        { x: mid - 2, y: mid }
+      ];
+      return {
+        size,
+        snake,
+        dir: 'right',
+        nextDir: 'right',
+        food: placeFood(snake, size, rng),
+        score: 0,
+        over: false
+      };
+    }
+
+    function isOpposite(a, b) {
+      return (a === 'up' && b === 'down') ||
+        (a === 'down' && b === 'up') ||
+        (a === 'left' && b === 'right') ||
+        (a === 'right' && b === 'left');
+    }
+
+    function stepGame(state, rng) {
+      if (state.over) return state;
+
+      const dir = state.nextDir;
+      const head = state.snake[0];
+      const next = nextHead(head, dir);
+
+      if (next.x < 0 || next.y < 0 || next.x >= state.size || next.y >= state.size) {
+        return { ...state, over: true };
+      }
+
+      const bodyKeys = new Set(state.snake.map(posKey));
+      if (bodyKeys.has(posKey(next))) {
+        return { ...state, over: true };
+      }
+
+      const ate = state.food && next.x === state.food.x && next.y === state.food.y;
+      const newSnake = [next, ...state.snake];
+      if (!ate) newSnake.pop();
+
+      const newFood = ate ? placeFood(newSnake, state.size, rng) : state.food;
+      const newScore = ate ? state.score + 1 : state.score;
+
+      return {
+        ...state,
+        snake: newSnake,
+        dir,
+        food: newFood,
+        score: newScore,
+        over: newFood === null ? true : false
+      };
+    }
+
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const bestEl = document.getElementById('best');
+    const statusEl = document.getElementById('status');
+
+    const rng = createRng(987654321);
+    let state = createGame(GRID_SIZE, rng);
+    let best = 0;
+    let timer = null;
+
+    function drawGrid() {
+      const cell = canvas.width / state.size;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--grid');
+      for (let i = 0; i <= state.size; i++) {
+        const p = i * cell;
+        ctx.fillRect(p, 0, 1, canvas.height);
+        ctx.fillRect(0, p, canvas.width, 1);
+      }
+
+      if (state.food) {
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--food');
+        ctx.fillRect(state.food.x * cell + 1, state.food.y * cell + 1, cell - 2, cell - 2);
+      }
+
+      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--snake');
+      for (const part of state.snake) {
+        ctx.fillRect(part.x * cell + 1, part.y * cell + 1, cell - 2, cell - 2);
+      }
+    }
+
+    function updateHud() {
+      scoreEl.textContent = String(state.score);
+      if (state.score > best) best = state.score;
+      bestEl.textContent = String(best);
+      statusEl.textContent = state.over ? 'Game Over' : 'Running';
+    }
+
+    function tick() {
+      state = stepGame(state, rng);
+      drawGrid();
+      updateHud();
+      if (state.over) stopLoop();
+    }
+
+    function startLoop() {
+      if (timer) return;
+      timer = setInterval(tick, TICK_MS);
+    }
+
+    function stopLoop() {
+      if (!timer) return;
+      clearInterval(timer);
+      timer = null;
+    }
+
+    function restart() {
+      state = createGame(GRID_SIZE, rng);
+      drawGrid();
+      updateHud();
+      startLoop();
+    }
+
+    function setDirection(dir) {
+      if (isOpposite(dir, state.dir)) return;
+      state.nextDir = dir;
+    }
+
+    window.addEventListener('keydown', (e) => {
+      const key = e.key.toLowerCase();
+      if (key === 'arrowup' || key === 'w') setDirection('up');
+      else if (key === 'arrowdown' || key === 's') setDirection('down');
+      else if (key === 'arrowleft' || key === 'a') setDirection('left');
+      else if (key === 'arrowright' || key === 'd') setDirection('right');
+      else if (key === 'r') restart();
+    });
+
+    document.querySelectorAll('.controls button').forEach((btn) => {
+      btn.addEventListener('click', () => setDirection(btn.dataset.dir));
+    });
+
+    drawGrid();
+    updateHud();
+    startLoop();
+  </script>
+</body>
+</html>

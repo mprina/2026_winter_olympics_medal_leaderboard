@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Runner</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: #141821;
+      --text: #e6e6e6;
+      --muted: #9aa3b2;
+      --accent: #2c3346;
+      --ground: #2a2f3c;
+      --player: #4cd964;
+      --obstacle: #ff3b30;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+    }
+    .wrap {
+      width: min(640px, 100%);
+      display: grid;
+      gap: 12px;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--accent);
+      border-radius: 10px;
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+    .hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+    }
+    .hud .label { color: var(--muted); }
+    canvas {
+      width: 100%;
+      height: auto;
+      background: #0b0d12;
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+    }
+    .controls {
+      display: none;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .controls button {
+      padding: 10px 0;
+      background: #0f1420;
+      border: 1px solid var(--accent);
+      color: var(--text);
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .footer {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    @media (pointer: coarse) {
+      .controls { display: grid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="panel">
+      <div class="hud">
+        <div><span class="label">Score</span> <span id="score">0</span></div>
+        <div><span class="label">Best</span> <span id="best">0</span></div>
+        <div><span class="label">Status</span> <span id="status">Running</span></div>
+      </div>
+      <canvas id="game" width="640" height="240" aria-label="Runner game"></canvas>
+    </div>
+
+    <div class="panel controls" aria-label="Touch controls">
+      <button id="jump">Jump</button>
+      <button id="restart">Restart</button>
+    </div>
+
+    <div class="footer">
+      Controls: Space / Up / W to jump. Restart: R.
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const bestEl = document.getElementById('best');
+    const statusEl = document.getElementById('status');
+
+    const GROUND_Y = 190;
+    const GRAVITY = 0.6;
+    const JUMP_VELOCITY = -11;
+    const OBSTACLE_SPEED = 4;
+    const SPAWN_MIN = 55;
+    const SPAWN_MAX = 110;
+
+    const player = {
+      x: 60,
+      y: GROUND_Y,
+      w: 18,
+      h: 28,
+      vy: 0,
+      onGround: true
+    };
+
+    const playerSprite = new Image();
+    playerSprite.src = 'images/Nephi.svg';
+    let spriteReady = false;
+    playerSprite.onload = () => { spriteReady = true; };
+
+    let obstacles = [];
+    let score = 0;
+    let best = 0;
+    let over = false;
+    let spawnTimer = 0;
+
+    function reset() {
+      obstacles = [];
+      score = 0;
+      over = false;
+      spawnTimer = randRange(SPAWN_MIN, SPAWN_MAX);
+      player.y = GROUND_Y;
+      player.vy = 0;
+      player.onGround = true;
+      updateHud();
+    }
+
+    function randRange(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function jump() {
+      if (over) return;
+      if (player.onGround) {
+        player.vy = JUMP_VELOCITY;
+        player.onGround = false;
+      }
+    }
+
+    function addObstacle() {
+      const height = randRange(18, 36);
+      const width = randRange(12, 22);
+      obstacles.push({ x: canvas.width + 10, y: GROUND_Y + player.h - height, w: width, h: height });
+    }
+
+    function update() {
+      if (over) return;
+
+      player.vy += GRAVITY;
+      player.y += player.vy;
+      if (player.y >= GROUND_Y) {
+        player.y = GROUND_Y;
+        player.vy = 0;
+        player.onGround = true;
+      }
+
+      spawnTimer -= 1;
+      if (spawnTimer <= 0) {
+        addObstacle();
+        spawnTimer = randRange(SPAWN_MIN, SPAWN_MAX);
+      }
+
+      for (const obs of obstacles) {
+        obs.x -= OBSTACLE_SPEED;
+      }
+      obstacles = obstacles.filter(o => o.x + o.w > -10);
+
+      for (const obs of obstacles) {
+        if (rectsOverlap(player.x, player.y - player.h, player.w, player.h, obs.x, obs.y - obs.h, obs.w, obs.h)) {
+          over = true;
+        }
+      }
+
+      score += 1;
+      if (score > best) best = score;
+      updateHud();
+    }
+
+    function rectsOverlap(ax, ay, aw, ah, bx, by, bw, bh) {
+      return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--ground');
+      ctx.fillRect(0, GROUND_Y + 1, canvas.width, 2);
+
+      const px = player.x;
+      const py = player.y;
+      if (spriteReady) {
+        ctx.drawImage(playerSprite, px - 4, py - player.h - 4, player.w + 8, player.h + 8);
+      } else {
+        // Fallback block if SVG hasn't loaded yet.
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--player');
+        ctx.fillRect(px, py - player.h, player.w, player.h);
+      }
+
+      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--obstacle');
+      for (const obs of obstacles) {
+        ctx.fillRect(obs.x, obs.y - obs.h, obs.w, obs.h);
+      }
+
+      if (over) {
+        ctx.fillStyle = '#00000099';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '16px ui-monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('Game Over - Press R to Restart', canvas.width / 2, canvas.height / 2);
+      }
+    }
+
+    function updateHud() {
+      scoreEl.textContent = String(score);
+      bestEl.textContent = String(best);
+      statusEl.textContent = over ? 'Game Over' : 'Running';
+    }
+
+    function loop() {
+      update();
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    window.addEventListener('keydown', (e) => {
+      const key = e.key.toLowerCase();
+      if (key === ' ' || key === 'arrowup' || key === 'w') jump();
+      if (key === 'r') reset();
+    });
+
+    document.getElementById('jump').addEventListener('click', jump);
+    document.getElementById('restart').addEventListener('click', reset);
+
+    reset();
+    loop();
+  </script>
+</body>
+</html>

@@ -7,6 +7,8 @@ const SOURCE_URL = "https://www.olympics.com/en/milano-cortina-2026/medals";
 const FALLBACK_PROXY_URL = "https://r.jina.ai/http://www.olympics.com/en/milano-cortina-2026/medals";
 const ESPN_URL = "https://www.espn.com/olympics/winter/2026/medals/_/view/overall/sort/total";
 const ESPN_FALLBACK_PROXY_URL = "https://r.jina.ai/http://www.espn.com/olympics/winter/2026/medals/_/view/overall/sort/total";
+const FETCH_RETRIES = 3;
+const RETRY_DELAY_MS = 2000;
 
 const COUNTRY_TO_NOC = {
   "Australia": "AUS", "Austria": "AUT", "Belarus": "BLR", "Belgium": "BEL", "Bulgaria": "BUL",
@@ -289,6 +291,26 @@ async function fetchPage(url) {
   return res.text();
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchPageWithRetry(url) {
+  let lastError = null;
+  for (let attempt = 1; attempt <= FETCH_RETRIES; attempt += 1) {
+    try {
+      return await fetchPage(url);
+    } catch (error) {
+      lastError = error;
+      if (attempt < FETCH_RETRIES) {
+        console.warn(`Fetch attempt ${attempt}/${FETCH_RETRIES} failed for ${url}: ${error?.message || error}`);
+        await sleep(RETRY_DELAY_MS * attempt);
+      }
+    }
+  }
+  throw lastError || new Error(`Failed to fetch ${url}`);
+}
+
 async function fetchRows() {
   const sources = [
     SOURCE_URL,
@@ -300,7 +322,7 @@ async function fetchRows() {
 
   for (const url of sources) {
     try {
-      const content = await fetchPage(url);
+      const content = await fetchPageWithRetry(url);
       const candidates = [
         parseRowsFromHtml(content),
         parseRowsFromEspnText(content),
@@ -322,32 +344,17 @@ async function fetchRows() {
 async function main() {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
   const outPath = path.join(root, "medals.json");
-  try {
-    const { rows, sourceUrl } = await fetchRows();
-    console.log(`Fetched ${rows.length} rows from ${sourceUrl}`);
-    const data = {
-      source: sourceUrl,
-      fetched_at: new Date().toISOString(),
-      row_count: rows.length,
-      rows
-    };
+  const { rows, sourceUrl } = await fetchRows();
+  console.log(`Fetched ${rows.length} rows from ${sourceUrl}`);
+  const data = {
+    source: sourceUrl,
+    fetched_at: new Date().toISOString(),
+    row_count: rows.length,
+    rows
+  };
 
-    await fs.writeFile(outPath, `${JSON.stringify(data, null, 2)}\n`, "utf8");
-    console.log(`Updated medals.json with ${rows.length} countries`);
-  } catch (error) {
-    // Keep the existing snapshot instead of failing the workflow run.
-    try {
-      const existingRaw = await fs.readFile(outPath, "utf8");
-      const existing = JSON.parse(existingRaw);
-      if (Array.isArray(existing.rows) && existing.rows.length > 0) {
-        console.warn("Live fetch failed; keeping existing medals.json snapshot.");
-        console.warn(`Reason: ${error?.message || error}`);
-        return;
-      }
-    } catch {}
-
-    throw error;
-  }
+  await fs.writeFile(outPath, `${JSON.stringify(data, null, 2)}\n`, "utf8");
+  console.log(`Updated medals.json with ${rows.length} countries`);
 }
 
 main().catch((error) => {

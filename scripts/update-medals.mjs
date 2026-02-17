@@ -5,12 +5,14 @@ import { fileURLToPath } from "node:url";
 
 const SOURCE_URL = "https://www.olympics.com/en/milano-cortina-2026/medals";
 const FALLBACK_PROXY_URL = "https://r.jina.ai/http://www.olympics.com/en/milano-cortina-2026/medals";
+const ESPN_URL = "https://www.espn.com/olympics/winter/2026/medals/_/view/overall/sort/total";
+const ESPN_FALLBACK_PROXY_URL = "https://r.jina.ai/http://www.espn.com/olympics/winter/2026/medals/_/view/overall/sort/total";
 
 const COUNTRY_TO_NOC = {
   "Australia": "AUS", "Austria": "AUT", "Belarus": "BLR", "Belgium": "BEL", "Bulgaria": "BUL",
-  "Canada": "CAN", "China": "CHN", "Croatia": "CRO", "Czech Republic": "CZE", "Czechia": "CZE",
+  "Brazil": "BRA", "Canada": "CAN", "China": "CHN", "Croatia": "CRO", "Czech Republic": "CZE", "Czechia": "CZE",
   "Denmark": "DEN", "Estonia": "EST", "Finland": "FIN", "France": "FRA", "Germany": "GER",
-  "Great Britain": "GBR", "United Kingdom": "GBR", "Greece": "GRE", "Hungary": "HUN",
+  "Georgia": "GEO", "Great Britain": "GBR", "United Kingdom": "GBR", "Greece": "GRE", "Hungary": "HUN",
   "Ireland": "IRL", "Italy": "ITA", "Japan": "JPN", "Kazakhstan": "KAZ", "Latvia": "LAT",
   "Lithuania": "LTU", "Netherlands": "NED", "New Zealand": "NZL", "Norway": "NOR",
   "Poland": "POL", "Romania": "ROU", "Serbia": "SRB", "Slovakia": "SVK", "Slovenia": "SLO",
@@ -20,18 +22,18 @@ const COUNTRY_TO_NOC = {
 
 const NOC_TO_COUNTRY = {
   AUS: "Australia", AUT: "Austria", BEL: "Belgium", BLR: "Belarus", BUL: "Bulgaria", CAN: "Canada",
-  CHN: "China", CRO: "Croatia", CZE: "Czechia", DEN: "Denmark", EST: "Estonia", FIN: "Finland",
+  BRA: "Brazil", CHN: "China", CRO: "Croatia", CZE: "Czechia", DEN: "Denmark", EST: "Estonia", FIN: "Finland",
   FRA: "France", GBR: "Great Britain", GER: "Germany", GRE: "Greece", HUN: "Hungary", IRL: "Ireland",
-  ITA: "Italy", JPN: "Japan", KAZ: "Kazakhstan", KOR: "South Korea", LAT: "Latvia", LTU: "Lithuania",
+  GEO: "Georgia", ITA: "Italy", JPN: "Japan", KAZ: "Kazakhstan", KOR: "South Korea", LAT: "Latvia", LTU: "Lithuania",
   NED: "Netherlands", NOR: "Norway", NZL: "New Zealand", POL: "Poland", ROU: "Romania",
   SRB: "Serbia", SLO: "Slovenia", SVK: "Slovakia", ESP: "Spain", SWE: "Sweden", SUI: "Switzerland",
   UKR: "Ukraine", USA: "United States"
 };
 
 const NOC_TO_ISO2 = {
-  AUS: "AU", AUT: "AT", BEL: "BE", BLR: "BY", BUL: "BG", CAN: "CA", CHN: "CN", CRO: "HR",
+  AUS: "AU", AUT: "AT", BEL: "BE", BLR: "BY", BRA: "BR", BUL: "BG", CAN: "CA", CHN: "CN", CRO: "HR",
   CZE: "CZ", DEN: "DK", EST: "EE", FIN: "FI", FRA: "FR", GBR: "GB", GER: "DE", GRE: "GR",
-  HUN: "HU", IRL: "IE", ITA: "IT", JPN: "JP", KAZ: "KZ", KOR: "KR", LAT: "LV", LTU: "LT",
+  GEO: "GE", HUN: "HU", IRL: "IE", ITA: "IT", JPN: "JP", KAZ: "KZ", KOR: "KR", LAT: "LV", LTU: "LT",
   NED: "NL", NOR: "NO", NZL: "NZ", POL: "PL", ROU: "RO", SRB: "RS", SLO: "SI", SVK: "SK",
   ESP: "ES", SWE: "SE", SUI: "CH", UKR: "UA", USA: "US"
 };
@@ -210,6 +212,69 @@ function parseRowsFromText(content) {
   return rows;
 }
 
+function stripHtmlTags(html) {
+  return String(html || "")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function parseRowsFromEspnText(content) {
+  const text = `${String(content || "")}\n${stripHtmlTags(content)}`;
+  const rows = [];
+  const seen = new Set();
+  const re = /\b([A-Z]{3})\s+([A-Za-z][A-Za-z .'\-()&]+?)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\b/g;
+  let match = re.exec(text);
+
+  while (match) {
+    const noc = match[1];
+    const country = sanitizeCountryName(match[2]);
+    const gold = Number(match[3]);
+    const silver = Number(match[4]);
+    const bronze = Number(match[5]);
+    const total = Number(match[6]);
+
+    if (
+      NOC_TO_ISO2[noc] &&
+      !Number.isNaN(gold) &&
+      !Number.isNaN(silver) &&
+      !Number.isNaN(bronze) &&
+      !Number.isNaN(total) &&
+      gold + silver + bronze === total &&
+      total > 0
+    ) {
+      const key = `${noc}|${country}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        rows.push({
+          noc,
+          country: NOC_TO_COUNTRY[noc] || country,
+          gold,
+          silver,
+          bronze,
+          total
+        });
+      }
+    }
+
+    match = re.exec(text);
+  }
+
+  rows.sort((a, b) => (
+    (b.total - a.total) ||
+    (b.gold - a.gold) ||
+    (b.silver - a.silver) ||
+    (b.bronze - a.bronze) ||
+    a.country.localeCompare(b.country)
+  ));
+
+  return rows;
+}
+
 async function fetchPage(url) {
   const res = await fetch(url, {
     cache: "no-store",
@@ -225,19 +290,27 @@ async function fetchPage(url) {
 }
 
 async function fetchRows() {
-  const urls = [SOURCE_URL, FALLBACK_PROXY_URL];
+  const sources = [
+    SOURCE_URL,
+    FALLBACK_PROXY_URL,
+    ESPN_URL,
+    ESPN_FALLBACK_PROXY_URL
+  ];
   let lastError = null;
 
-  for (const url of urls) {
+  for (const url of sources) {
     try {
-      const html = await fetchPage(url);
-      const htmlRows = parseRowsFromHtml(html);
-      if (htmlRows.length >= 5) return htmlRows;
+      const content = await fetchPage(url);
+      const candidates = [
+        parseRowsFromHtml(content),
+        parseRowsFromEspnText(content),
+        parseRowsFromText(content)
+      ];
 
-      const textRows = parseRowsFromText(html);
-      if (textRows.length >= 5) return textRows;
+      const best = candidates.sort((a, b) => b.length - a.length)[0];
+      if (best.length >= 5) return { rows: best, sourceUrl: url };
 
-      lastError = new Error(`Parsed no usable rows from ${url}`);
+      lastError = new Error(`Parsed no usable rows from ${url} (max rows: ${best.length})`);
     } catch (error) {
       lastError = error;
     }
@@ -250,9 +323,10 @@ async function main() {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
   const outPath = path.join(root, "medals.json");
   try {
-    const rows = await fetchRows();
+    const { rows, sourceUrl } = await fetchRows();
+    console.log(`Fetched ${rows.length} rows from ${sourceUrl}`);
     const data = {
-      source: SOURCE_URL,
+      source: sourceUrl,
       fetched_at: new Date().toISOString(),
       row_count: rows.length,
       rows

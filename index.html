@@ -314,11 +314,16 @@
 
     .dots {
       display: flex;
-      flex-wrap: nowrap;
-      gap: 0;
-      min-height: 20px;
-      align-items: center;
+      flex-direction: column;
+      gap: 2px;
+      min-height: 32px;
+      align-items: flex-start;
       overflow: visible;
+    }
+
+    .dots-row {
+      display: flex;
+      align-items: center;
     }
 
     .dot {
@@ -328,6 +333,7 @@
       border: 2px solid var(--bg);
       flex: 0 0 auto;
       margin-left: -4px;
+      position: relative;
     }
 
     .dot:first-child {
@@ -673,11 +679,50 @@
     }
 
     function medalDots(row) {
-      const dots = [];
-      for (let i = 0; i < row.gold; i += 1) dots.push('<span class="dot gold"></span>');
-      for (let i = 0; i < row.silver; i += 1) dots.push('<span class="dot silver"></span>');
-      for (let i = 0; i < row.bronze; i += 1) dots.push('<span class="dot bronze"></span>');
-      return dots.join("");
+      const total = row.gold + row.silver + row.bronze;
+      if (total === 0) return "";
+
+      const makeRow = (gold, silver, bronze) => {
+        let html = "";
+        const totalInRow = gold + silver + bronze;
+        let z = totalInRow;
+        for (let i = 0; i < gold; i += 1) html += `<span class="dot gold" style="z-index:${z--}"></span>`;
+        for (let i = 0; i < silver; i += 1) html += `<span class="dot silver" style="z-index:${z--}"></span>`;
+        for (let i = 0; i < bronze; i += 1) html += `<span class="dot bronze" style="z-index:${z--}"></span>`;
+        return html;
+      };
+
+      // Fill columns top-first then bottom to match NYT's two-row medal pattern.
+      let topGold = 0;
+      let bottomGold = 0;
+      let topSilver = 0;
+      let bottomSilver = 0;
+      let topBronze = 0;
+      let bottomBronze = 0;
+      let medalIndex = 0;
+      const place = (color) => {
+        const isTop = medalIndex % 2 === 0;
+        medalIndex += 1;
+        if (color === "gold") {
+          if (isTop) topGold += 1;
+          else bottomGold += 1;
+        } else if (color === "silver") {
+          if (isTop) topSilver += 1;
+          else bottomSilver += 1;
+        } else {
+          if (isTop) topBronze += 1;
+          else bottomBronze += 1;
+        }
+      };
+
+      for (let i = 0; i < row.gold; i += 1) place("gold");
+      for (let i = 0; i < row.silver; i += 1) place("silver");
+      for (let i = 0; i < row.bronze; i += 1) place("bronze");
+
+      const topRow = makeRow(topGold, topSilver, topBronze);
+      const bottomRow = makeRow(bottomGold, bottomSilver, bottomBronze);
+      if (!bottomRow) return `<div class="dots-row">${topRow}</div>`;
+      return `<div class="dots-row">${topRow}</div><div class="dots-row">${bottomRow}</div>`;
     }
 
     function renderPodium(rows) {

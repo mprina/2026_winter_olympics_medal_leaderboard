@@ -167,6 +167,49 @@ function parseRowsFromHtml(html) {
   return valid;
 }
 
+function parseRowsFromText(content) {
+  const lines = String(content || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const rows = [];
+  const seen = new Set();
+  const countryNames = Object.keys(COUNTRY_TO_NOC).sort((a, b) => b.length - a.length);
+
+  for (const line of lines) {
+    for (const country of countryNames) {
+      if (!line.toLowerCase().includes(country.toLowerCase())) continue;
+      const noc = COUNTRY_TO_NOC[country];
+      if (!noc || !NOC_TO_ISO2[noc]) continue;
+      const nums = line.match(/\d+/g) || [];
+      if (nums.length < 4) continue;
+
+      const gold = Number(nums[0]);
+      const silver = Number(nums[1]);
+      const bronze = Number(nums[2]);
+      const total = Number(nums[3]);
+      if ([gold, silver, bronze, total].some((n) => Number.isNaN(n))) continue;
+      if (gold + silver + bronze !== total) continue;
+
+      const key = `${noc}|${country}`;
+      if (seen.has(key)) break;
+      seen.add(key);
+      rows.push({ noc, country, gold, silver, bronze, total });
+      break;
+    }
+  }
+
+  rows.sort((a, b) => (
+    (b.total - a.total) ||
+    (b.gold - a.gold) ||
+    (b.silver - a.silver) ||
+    (b.bronze - a.bronze) ||
+    a.country.localeCompare(b.country)
+  ));
+  return rows;
+}
+
 async function fetchPage(url) {
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
@@ -180,8 +223,12 @@ async function fetchRows() {
   for (const url of urls) {
     try {
       const html = await fetchPage(url);
-      const rows = parseRowsFromHtml(html);
-      if (rows.length >= 5) return rows;
+      const htmlRows = parseRowsFromHtml(html);
+      if (htmlRows.length >= 5) return htmlRows;
+
+      const textRows = parseRowsFromText(html);
+      if (textRows.length >= 5) return textRows;
+
       lastError = new Error(`Parsed no usable rows from ${url}`);
     } catch (error) {
       lastError = error;

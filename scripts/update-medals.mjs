@@ -192,18 +192,33 @@ async function fetchRows() {
 }
 
 async function main() {
-  const rows = await fetchRows();
-  const data = {
-    source: SOURCE_URL,
-    fetched_at: new Date().toISOString(),
-    row_count: rows.length,
-    rows
-  };
-
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
   const outPath = path.join(root, "medals.json");
-  await fs.writeFile(outPath, `${JSON.stringify(data, null, 2)}\n`, "utf8");
-  console.log(`Updated medals.json with ${rows.length} countries`);
+  try {
+    const rows = await fetchRows();
+    const data = {
+      source: SOURCE_URL,
+      fetched_at: new Date().toISOString(),
+      row_count: rows.length,
+      rows
+    };
+
+    await fs.writeFile(outPath, `${JSON.stringify(data, null, 2)}\n`, "utf8");
+    console.log(`Updated medals.json with ${rows.length} countries`);
+  } catch (error) {
+    // Keep the existing snapshot instead of failing the workflow run.
+    try {
+      const existingRaw = await fs.readFile(outPath, "utf8");
+      const existing = JSON.parse(existingRaw);
+      if (Array.isArray(existing.rows) && existing.rows.length > 0) {
+        console.warn("Live fetch failed; keeping existing medals.json snapshot.");
+        console.warn(`Reason: ${error?.message || error}`);
+        return;
+      }
+    } catch {}
+
+    throw error;
+  }
 }
 
 main().catch((error) => {

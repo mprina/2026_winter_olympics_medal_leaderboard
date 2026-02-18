@@ -520,6 +520,7 @@
     const REFRESH_MS = 10 * 60 * 1000;
     const MEDALS_JSON_URL = "medals.json";
     const THEME_STORAGE_KEY = "olympics_theme";
+    const LANGUAGE_STORAGE_KEY = "olympics_language";
 
     const FALLBACK_MEDALS = [
       { noc: "NOR", country: "Norway", gold: 8, silver: 3, bronze: 7 },
@@ -898,6 +899,12 @@
           state.theme = savedTheme;
         }
       } catch (_) {}
+      try {
+        const savedLanguage = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+        if (savedLanguage && STRINGS[savedLanguage]) {
+          state.language = savedLanguage;
+        }
+      } catch (_) {}
 
       document.body.setAttribute("data-theme", state.theme);
       applyStrings();
@@ -913,6 +920,9 @@
 
       document.getElementById("languagePicker").addEventListener("change", (e) => {
         state.language = e.target.value;
+        try {
+          localStorage.setItem(LANGUAGE_STORAGE_KEY, state.language);
+        } catch (_) {}
         applyStrings();
         render();
       });

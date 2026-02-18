@@ -1,6 +1,6 @@
 {
   "source": "https://r.jina.ai/http://www.olympics.com/en/milano-cortina-2026/medals",
-  "fetched_at": "2026-02-18T16:34:42.424Z",
+  "fetched_at": "2026-02-18T19:13:57.932Z",
   "row_count": 20,
   "rows": [
     {
@@ -8,8 +8,8 @@
       "country": "Norway",
       "gold": 15,
       "silver": 8,
-      "bronze": 9,
-      "total": 32
+      "bronze": 10,
+      "total": 33
     },
     {
       "noc": "ITA",
@@ -22,10 +22,18 @@
     {
       "noc": "USA",
       "country": "United States",
-      "gold": 6,
+      "gold": 7,
       "silver": 11,
       "bronze": 6,
-      "total": 23
+      "total": 24
+    },
+    {
+      "noc": "JPN",
+      "country": "Japan",
+      "gold": 5,
+      "silver": 6,
+      "bronze": 11,
+      "total": 22
     },
     {
       "noc": "GER",
@@ -36,12 +44,12 @@
       "total": 21
     },
     {
-      "noc": "JPN",
-      "country": "Japan",
-      "gold": 4,
-      "silver": 6,
-      "bronze": 10,
-      "total": 20
+      "noc": "FRA",
+      "country": "France",
+      "gold": 6,
+      "silver": 7,
+      "bronze": 4,
+      "total": 17
     },
     {
       "noc": "AUT",
@@ -52,12 +60,12 @@
       "total": 17
     },
     {
-      "noc": "FRA",
-      "country": "France",
-      "gold": 5,
-      "silver": 7,
-      "bronze": 4,
-      "total": 16
+      "noc": "SWE",
+      "country": "Sweden",
+      "gold": 6,
+      "silver": 6,
+      "bronze": 3,
+      "total": 15
     },
     {
       "noc": "NED",
@@ -68,12 +76,12 @@
       "total": 13
     },
     {
-      "noc": "SWE",
-      "country": "Sweden",
-      "gold": 6,
-      "silver": 5,
-      "bronze": 2,
-      "total": 13
+      "noc": "SUI",
+      "country": "Switzerland",
+      "gold": 5,
+      "silver": 4,
+      "bronze": 3,
+      "total": 12
     },
     {
       "noc": "CAN",
@@ -82,14 +90,6 @@
       "silver": 4,
       "bronze": 5,
       "total": 12
-    },
-    {
-      "noc": "SUI",
-      "country": "Switzerland",
-      "gold": 5,
-      "silver": 3,
-      "bronze": 3,
-      "total": 11
     },
     {
       "noc": "CHN",

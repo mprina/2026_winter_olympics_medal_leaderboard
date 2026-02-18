@@ -566,13 +566,14 @@
         bronze: "Bronze",
         total: "Total",
         breakdown: "Breakdown",
-        officialLink: "Offical Olympics Website",
+        officialLink: "Official Olympics Website",
         language: "Language",
         theme: "Theme",
         light: "Light",
         dark: "Dark",
         loading: "Loading medal data...",
-        updated: "Updated"
+        updated: "Updated",
+        madeWith: "Made with ❤️ by"
       },
       it: {
         titleTop: "Olimpiadi Invernali 2026",
@@ -584,13 +585,14 @@
         bronze: "Bronzo",
         total: "Totale",
         breakdown: "Dettaglio",
-        officialLink: "Offical Olympics Website",
+        officialLink: "Sito Ufficiale Olimpiadi",
         language: "Lingua",
         theme: "Tema",
         light: "Chiaro",
         dark: "Scuro",
         loading: "Caricamento dati medaglie...",
-        updated: "Aggiornato"
+        updated: "Aggiornato",
+        madeWith: "Realizzato con ❤️ da"
       },
       es: {
         titleTop: "Juegos Olímpicos de Invierno 2026",
@@ -602,13 +604,14 @@
         bronze: "Bronce",
         total: "Total",
         breakdown: "Desglose",
-        officialLink: "Offical Olympics Website",
+        officialLink: "Sitio Oficial Olímpico",
         language: "Idioma",
         theme: "Tema",
         light: "Claro",
         dark: "Oscuro",
         loading: "Cargando datos de medallas...",
-        updated: "Actualizado"
+        updated: "Actualizado",
+        madeWith: "Hecho con ❤️ por"
       }
     };
 
@@ -616,8 +619,10 @@
       medals: [],
       sortBy: "total",
       language: "en",
-      theme: "light"
+      theme: "light",
+      fetchedAt: null
     };
+    const COUNTRY_NAME_CACHE = {};
 
     function flagFromNoc(noc) {
       const iso = NOC_TO_ISO2[noc];
@@ -677,6 +682,20 @@
         return byTotal || byGold || bySilver || byBronze || byName;
       });
       return ordered;
+    }
+
+    function localizeCountry(row) {
+      if (state.language === "en") return row.country;
+      const iso2 = NOC_TO_ISO2[row.noc];
+      if (!iso2) return row.country;
+      try {
+        if (!COUNTRY_NAME_CACHE[state.language]) {
+          COUNTRY_NAME_CACHE[state.language] = new Intl.DisplayNames([state.language], { type: "region" });
+        }
+        return COUNTRY_NAME_CACHE[state.language].of(iso2) || row.country;
+      } catch (_) {
+        return row.country;
+      }
     }
 
     function medalDots(row) {
@@ -743,6 +762,7 @@
             </div>
           `;
         }
+        const localizedCountry = localizeCountry(item);
         const flagEmoji = flagFromNoc(item.noc);
         const flagUrl = flagImageUrl(item.noc, 80);
         return `
@@ -750,11 +770,11 @@
             <div class="podium-floating">
               <div class="podium-flag">
                 ${flagUrl
-                  ? `<img class="podium-flag-img" src="${flagUrl}" alt="${item.country} flag" onerror="this.outerHTML='${flagEmoji}'">`
+                  ? `<img class="podium-flag-img" src="${flagUrl}" alt="${localizedCountry} flag" onerror="this.outerHTML='${flagEmoji}'">`
                   : `<span class="flag-fallback" aria-hidden="true">${flagEmoji}</span>`
                 }
               </div>
-              <div class="podium-country">${item.country}</div>
+              <div class="podium-country">${localizedCountry}</div>
               <div class="podium-count">${item.total}</div>
             </div>
             <div class="podium-rings" aria-label="Olympic rings symbol">
@@ -768,6 +788,7 @@
     function renderTable(rows) {
       const body = document.getElementById("rows");
       body.innerHTML = rows.map((row, index) => {
+        const localizedCountry = localizeCountry(row);
         const flagEmoji = flagFromNoc(row.noc);
         const flagUrl = flagImageUrl(row.noc, 40);
         return `
@@ -777,11 +798,11 @@
               <div class="country-cell">
                 <span class="flag">
                   ${flagUrl
-                    ? `<img class="flag-img" src="${flagUrl}" alt="${row.country} flag" onerror="this.outerHTML='<span class=&quot;flag-fallback&quot; aria-hidden=&quot;true&quot;>${flagEmoji}</span>'">`
+                    ? `<img class="flag-img" src="${flagUrl}" alt="${localizedCountry} flag" onerror="this.outerHTML='<span class=&quot;flag-fallback&quot; aria-hidden=&quot;true&quot;>${flagEmoji}</span>'">`
                     : `<span class="flag-fallback" aria-hidden="true">${flagEmoji}</span>`
                   }
                 </span>
-                <span>${row.country}</span>
+                <span>${localizedCountry}</span>
               </div>
             </td>
             <td class="metric">${row.gold}</td>
@@ -808,13 +829,26 @@
       document.getElementById("officialLink").textContent = t.officialLink;
       document.getElementById("langLabel").textContent = t.language;
       document.getElementById("themeLabel").textContent = t.theme;
-      document.getElementById("madeBy").innerHTML = `Made with ❤️ by <a id="designerLink" href="https://www.instagram.com/mattprina_design/" target="_blank" rel="noopener noreferrer">Matt Prina Design</a>`;
+      document.getElementById("madeBy").innerHTML = `${t.madeWith} <a id="designerLink" href="https://www.instagram.com/mattprina_design/" target="_blank" rel="noopener noreferrer">Matt Prina Design</a>`;
 
       const themePicker = document.getElementById("themePicker");
       themePicker.options[0].text = t.light;
       themePicker.options[1].text = t.dark;
 
       renderSortIndicators();
+      renderStatus();
+    }
+
+    function renderStatus() {
+      const t = STRINGS[state.language];
+      const status = document.getElementById("status");
+      if (!state.fetchedAt) {
+        status.textContent = t.loading;
+        return;
+      }
+      const sourceTime = new Date(state.fetchedAt);
+      const stamp = sourceTime.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+      status.textContent = `${t.updated}: ${stamp}`;
     }
 
     function setSortableHeader(id, label, key) {
@@ -852,11 +886,9 @@
       document.getElementById("status").textContent = t.loading;
       const result = await fetchLocalMedals();
       state.medals = result.rows;
+      state.fetchedAt = result.fetchedAt || new Date().toISOString();
       render();
-
-      const sourceTime = result.fetchedAt ? new Date(result.fetchedAt) : new Date();
-      const stamp = sourceTime.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
-      document.getElementById("status").textContent = `${t.updated}: ${stamp}`;
+      renderStatus();
     }
 
     function init() {

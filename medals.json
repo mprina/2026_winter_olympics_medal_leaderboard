@@ -1,47 +1,47 @@
 {
-  "source": "https://www.espn.com/olympics/winter/2026/medals/_/view/overall/sort/total",
-  "fetched_at": "2026-02-18T12:04:56.298Z",
-  "row_count": 26,
+  "source": "https://r.jina.ai/http://www.olympics.com/en/milano-cortina-2026/medals",
+  "fetched_at": "2026-02-18T13:36:48.977Z",
+  "row_count": 20,
   "rows": [
     {
       "noc": "NOR",
       "country": "Norway",
-      "gold": 14,
+      "gold": 15,
       "silver": 8,
       "bronze": 9,
-      "total": 31
+      "total": 32
     },
     {
       "noc": "ITA",
       "country": "Italy",
       "gold": 9,
       "silver": 4,
-      "bronze": 11,
-      "total": 24
+      "bronze": 12,
+      "total": 25
     },
     {
       "noc": "USA",
       "country": "United States",
       "gold": 6,
-      "silver": 10,
-      "bronze": 5,
-      "total": 21
+      "silver": 11,
+      "bronze": 6,
+      "total": 23
     },
     {
       "noc": "GER",
       "country": "Germany",
       "gold": 5,
       "silver": 8,
-      "bronze": 7,
-      "total": 20
+      "bronze": 8,
+      "total": 21
     },
     {
       "noc": "JPN",
       "country": "Japan",
       "gold": 4,
-      "silver": 5,
+      "silver": 6,
       "bronze": 10,
-      "total": 19
+      "total": 20
     },
     {
       "noc": "AUT",
@@ -70,10 +70,10 @@
     {
       "noc": "SWE",
       "country": "Sweden",
-      "gold": 5,
+      "gold": 6,
       "silver": 5,
       "bronze": 2,
-      "total": 12
+      "total": 13
     },
     {
       "noc": "CAN",
@@ -87,9 +87,25 @@
       "noc": "SUI",
       "country": "Switzerland",
       "gold": 5,
-      "silver": 2,
+      "silver": 3,
       "bronze": 3,
-      "total": 10
+      "total": 11
+    },
+    {
+      "noc": "CHN",
+      "country": "China",
+      "gold": 2,
+      "silver": 3,
+      "bronze": 4,
+      "total": 9
+    },
+    {
+      "noc": "AUS",
+      "country": "Australia",
+      "gold": 3,
+      "silver": 2,
+      "bronze": 1,
+      "total": 6
     },
     {
       "noc": "KOR",
@@ -98,22 +114,6 @@
       "silver": 2,
       "bronze": 3,
       "total": 6
-    },
-    {
-      "noc": "CHN",
-      "country": "China",
-      "gold": 0,
-      "silver": 3,
-      "bronze": 3,
-      "total": 6
-    },
-    {
-      "noc": "AUS",
-      "country": "Australia",
-      "gold": 3,
-      "silver": 1,
-      "bronze": 1,
-      "total": 5
     },
     {
       "noc": "CZE",
@@ -140,44 +140,12 @@
       "total": 4
     },
     {
-      "noc": "FIN",
-      "country": "Finland",
-      "gold": 0,
-      "silver": 0,
-      "bronze": 4,
-      "total": 4
-    },
-    {
       "noc": "GBR",
       "country": "Great Britain",
       "gold": 3,
       "silver": 0,
       "bronze": 0,
       "total": 3
-    },
-    {
-      "noc": "LAT",
-      "country": "Latvia",
-      "gold": 0,
-      "silver": 1,
-      "bronze": 1,
-      "total": 2
-    },
-    {
-      "noc": "NZL",
-      "country": "New Zealand",
-      "gold": 0,
-      "silver": 1,
-      "bronze": 1,
-      "total": 2
-    },
-    {
-      "noc": "BUL",
-      "country": "Bulgaria",
-      "gold": 0,
-      "silver": 0,
-      "bronze": 2,
-      "total": 2
     },
     {
       "noc": "BRA",
@@ -193,22 +161,6 @@
       "gold": 1,
       "silver": 0,
       "bronze": 0,
-      "total": 1
-    },
-    {
-      "noc": "GEO",
-      "country": "Georgia",
-      "gold": 0,
-      "silver": 1,
-      "bronze": 0,
-      "total": 1
-    },
-    {
-      "noc": "BEL",
-      "country": "Belgium",
-      "gold": 0,
-      "silver": 0,
-      "bronze": 1,
       "total": 1
     }
   ]

@@ -519,6 +519,7 @@
   <script>
     const REFRESH_MS = 10 * 60 * 1000;
     const MEDALS_JSON_URL = "medals.json";
+    const THEME_STORAGE_KEY = "olympics_theme";
 
     const FALLBACK_MEDALS = [
       { noc: "NOR", country: "Norway", gold: 8, silver: 3, bronze: 7 },
@@ -859,6 +860,14 @@
     }
 
     function init() {
+      try {
+        const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+        if (savedTheme === "light" || savedTheme === "dark") {
+          state.theme = savedTheme;
+        }
+      } catch (_) {}
+
+      document.body.setAttribute("data-theme", state.theme);
       applyStrings();
       document.getElementById("languagePicker").value = state.language;
       document.getElementById("themePicker").value = state.theme;
@@ -879,6 +888,9 @@
       document.getElementById("themePicker").addEventListener("change", (e) => {
         state.theme = e.target.value;
         document.body.setAttribute("data-theme", state.theme);
+        try {
+          localStorage.setItem(THEME_STORAGE_KEY, state.theme);
+        } catch (_) {}
       });
 
       loadData();

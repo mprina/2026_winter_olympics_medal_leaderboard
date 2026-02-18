@@ -1,6 +1,6 @@
 {
   "source": "https://www.espn.com/olympics/winter/2026/medals/_/view/overall/sort/total",
-  "fetched_at": "2026-02-17T21:39:15.582Z",
+  "fetched_at": "2026-02-18T07:39:20.114Z",
   "row_count": 26,
   "rows": [
     {
@@ -28,6 +28,14 @@
       "total": 21
     },
     {
+      "noc": "GER",
+      "country": "Germany",
+      "gold": 5,
+      "silver": 8,
+      "bronze": 7,
+      "total": 20
+    },
+    {
       "noc": "JPN",
       "country": "Japan",
       "gold": 4,
@@ -41,14 +49,6 @@
       "gold": 5,
       "silver": 8,
       "bronze": 4,
-      "total": 17
-    },
-    {
-      "noc": "GER",
-      "country": "Germany",
-      "gold": 4,
-      "silver": 7,
-      "bronze": 6,
       "total": 17
     },
     {

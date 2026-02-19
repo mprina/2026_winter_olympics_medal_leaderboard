@@ -1,6 +1,6 @@
 {
   "source": "https://r.jina.ai/http://www.olympics.com/en/milano-cortina-2026/medals",
-  "fetched_at": "2026-02-19T11:28:34.881Z",
+  "fetched_at": "2026-02-19T13:24:23.184Z",
   "row_count": 20,
   "rows": [
     {
@@ -47,9 +47,9 @@
       "noc": "FRA",
       "country": "France",
       "gold": 6,
-      "silver": 7,
-      "bronze": 4,
-      "total": 17
+      "silver": 8,
+      "bronze": 5,
+      "total": 19
     },
     {
       "noc": "AUT",
@@ -86,10 +86,10 @@
     {
       "noc": "SUI",
       "country": "Switzerland",
-      "gold": 5,
+      "gold": 6,
       "silver": 4,
       "bronze": 3,
-      "total": 12
+      "total": 13
     },
     {
       "noc": "CHN",
@@ -132,20 +132,20 @@
       "total": 4
     },
     {
-      "noc": "POL",
-      "country": "Poland",
-      "gold": 0,
-      "silver": 3,
-      "bronze": 1,
-      "total": 4
-    },
-    {
       "noc": "GBR",
       "country": "Great Britain",
       "gold": 3,
       "silver": 0,
       "bronze": 0,
       "total": 3
+    },
+    {
+      "noc": "ESP",
+      "country": "Spain",
+      "gold": 1,
+      "silver": 0,
+      "bronze": 1,
+      "total": 2
     },
     {
       "noc": "BRA",

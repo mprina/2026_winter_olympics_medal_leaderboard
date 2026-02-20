@@ -1,7 +1,7 @@
 {
   "source": "https://r.jina.ai/http://www.olympics.com/en/milano-cortina-2026/medals",
-  "fetched_at": "2026-02-19T22:52:49.832Z",
-  "row_count": 20,
+  "fetched_at": "2026-02-20T00:54:21.153Z",
+  "row_count": 19,
   "rows": [
     {
       "noc": "NOR",
@@ -150,14 +150,6 @@
     {
       "noc": "BRA",
       "country": "Brazil",
-      "gold": 1,
-      "silver": 0,
-      "bronze": 0,
-      "total": 1
-    },
-    {
-      "noc": "KAZ",
-      "country": "Kazakhstan",
       "gold": 1,
       "silver": 0,
       "bronze": 0,

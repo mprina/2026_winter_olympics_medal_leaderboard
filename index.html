@@ -1569,6 +1569,7 @@
         ? t.madeWith.replace("❤️", heartButtonHtml)
         : `${t.madeWith} ${heartButtonHtml}`;
       document.getElementById("madeBy").innerHTML = `${madeWithCopy} <a id="designerLink" href="https://www.instagram.com/mattprina_design/" target="_blank" rel="noopener noreferrer">Matt Prina Design</a>`;
+      bindHeartTrigger();
 
       const themePicker = document.getElementById("themePicker");
       themePicker.options[0].text = t.light;
@@ -1576,6 +1577,16 @@
 
       renderSortIndicators();
       renderStatus();
+    }
+
+    function bindHeartTrigger() {
+      const heart = document.getElementById("heartTrigger");
+      if (!heart) return;
+      heart.onclick = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        openEasterQuiz();
+      };
     }
 
     function renderStatus() {
@@ -1868,12 +1879,6 @@
           return;
         }
 
-        const heart = e.target.closest("#heartTrigger");
-        if (heart) {
-          openEasterQuiz();
-          return;
-        }
-
         const option = e.target.closest(".quiz-option");
         if (option && !state.quizComplete && !state.quizRevealed) {
           state.quizSelected = Number(option.dataset.idx);
@@ -1930,7 +1935,7 @@
       setInterval(loadData, REFRESH_MS);
 
       if (shouldOpenQuizFromUrl()) {
-        requestAnimationFrame(() => openEasterQuiz());
+        setTimeout(() => openEasterQuiz(), 50);
       }
     }
 

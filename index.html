@@ -16,6 +16,10 @@
       --bronze: #b36a1f;
       --accent: #1f2937;
       --shadow: 0 8px 24px rgba(17, 24, 39, 0.06);
+      --quiz-bg-top: #f4cb5a;
+      --quiz-bg-bottom: #dfb23e;
+      --quiz-title-color: #111827;
+      --quiz-muted-color: var(--bronze);
     }
 
     [data-theme="dark"] {
@@ -29,6 +33,10 @@
       --bronze: #b46f2f;
       --accent: #e5e7eb;
       --shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+      --quiz-bg-top: #0a0a0a;
+      --quiz-bg-bottom: #000000;
+      --quiz-title-color: #e9b949;
+      --quiz-muted-color: var(--bronze);
     }
 
     * { box-sizing: border-box; }
@@ -51,6 +59,9 @@
       padding: 24px 16px 20px;
       display: grid;
       gap: 20px;
+      position: relative;
+      z-index: 20;
+      transform: translateY(0);
     }
 
     .panel {
@@ -374,6 +385,299 @@
 
     a { color: inherit; }
 
+    .easter-shell {
+      position: fixed;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      z-index: 40;
+      pointer-events: none;
+      overflow: hidden;
+      height: 100vh;
+      background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+      border-top: 0;
+      transform: translateY(100%);
+      transition: transform 420ms ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      color: #f9fafb;
+      --quiz-title-color: #e9b949;
+      --quiz-muted-color: var(--bronze);
+      --quiz-option-bg: rgba(17, 24, 39, 0.9);
+      --quiz-option-border: rgba(248, 250, 252, 0.22);
+      --quiz-option-text: #f9fafb;
+      --quiz-option-hover-bg: rgba(31, 41, 55, 0.95);
+      --quiz-option-hover-border: rgba(248, 250, 252, 0.36);
+    }
+
+    .easter-shell.open {
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .quiz-panel {
+      width: min(900px, 100%);
+      margin: 0 auto;
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+      border-radius: 0;
+      padding: 18px 18px 22px;
+      min-height: min(68vh, 620px);
+      transform: translateY(100%);
+      opacity: 0;
+      transition: transform 420ms ease, opacity 300ms ease;
+      position: relative;
+      pointer-events: auto;
+    }
+
+    .heart-trigger {
+      border: 0;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      padding: 0;
+      margin: 0;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .easter-shell.open .quiz-panel {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .quiz-close {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      border: 0;
+      background: transparent;
+      color: var(--gold);
+      width: 34px;
+      height: 34px;
+      border-radius: 0;
+      font-size: 2rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      cursor: pointer;
+      transition: background-color 140ms ease, color 140ms ease, transform 140ms ease, border-radius 140ms ease;
+    }
+
+    .quiz-close:hover {
+      background: color-mix(in srgb, var(--bronze) 78%, transparent);
+      color: var(--gold);
+      border-radius: 999px;
+      transform: scale(1.04);
+    }
+
+    .quiz-header {
+      padding: 0 40px 0 14px;
+      margin-bottom: 14px;
+    }
+
+    .quiz-title {
+      margin: 0;
+      font-size: clamp(1.7rem, 3.6vw, 2.4rem);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      font-family: "Futura Bold", "Futura", sans-serif;
+      color: var(--quiz-title-color);
+    }
+
+    .quiz-subtitle {
+      margin: 4px 0 0;
+      color: var(--quiz-muted-color);
+      font-size: 0.9rem;
+    }
+
+    .quiz-card {
+      border: 0;
+      border-radius: 12px;
+      background: transparent;
+      padding: 14px;
+    }
+
+    .quiz-progress {
+      color: var(--quiz-muted-color);
+      font-size: 0.84rem;
+      margin-bottom: 6px;
+    }
+
+    .quiz-tracker {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .quiz-track-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      border: 1px solid rgba(17, 24, 39, 0.35);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .quiz-track-dot.current {
+      border-color: var(--bronze);
+    }
+
+    .quiz-track-dot.correct {
+      background: rgba(16, 185, 129, 0.24);
+      border-color: rgba(5, 150, 105, 0.8);
+      color: #065f46;
+    }
+
+    .quiz-track-dot.wrong {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: rgba(185, 28, 28, 0.8);
+      color: #7f1d1d;
+    }
+
+    .quiz-question {
+      font-size: 1.02rem;
+      margin: 0 0 12px;
+      font-weight: 700;
+    }
+
+    .quiz-options {
+      display: grid;
+      gap: 8px;
+    }
+
+    .quiz-option {
+      text-align: left;
+      border: 1px solid var(--quiz-option-border);
+      background: var(--quiz-option-bg);
+      color: var(--quiz-option-text);
+      border-radius: 9px;
+      padding: 10px 12px;
+      cursor: pointer;
+      font-size: 0.96rem;
+      transition: border-color 140ms ease, background-color 140ms ease, transform 140ms ease;
+    }
+
+    .quiz-option.selected {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.18);
+    }
+
+    .quiz-option:hover:not(:disabled) {
+      border-color: var(--quiz-option-hover-border);
+      background: var(--quiz-option-hover-bg);
+      transform: translateY(-1px);
+    }
+
+    .quiz-option.correct {
+      border-color: rgba(5, 150, 105, 0.9);
+      background: rgba(16, 185, 129, 0.2);
+    }
+
+    .quiz-option.wrong {
+      border-color: rgba(185, 28, 28, 0.9);
+      background: rgba(239, 68, 68, 0.16);
+    }
+
+    .quiz-feedback {
+      min-height: 1.4em;
+      margin-top: 10px;
+      color: var(--quiz-muted-color);
+      font-size: 0.9rem;
+    }
+
+    .quiz-feedback.correct {
+      color: #065f46;
+    }
+
+    .quiz-feedback.wrong {
+      color: #7f1d1d;
+    }
+
+    .quiz-actions {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: 1px solid var(--bronze);
+      background: transparent;
+      color: var(--bronze);
+      border-radius: 10px;
+      padding: 9px 12px;
+      font-size: 0.92rem;
+      cursor: pointer;
+      transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease, transform 140ms ease;
+    }
+
+    .btn.primary {
+      background: var(--gold);
+      color: #111827;
+      border-color: rgba(17, 24, 39, 0.2);
+    }
+
+    .btn:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--bronze) 12%, transparent);
+      transform: translateY(-1px);
+    }
+
+    .btn.primary:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--gold) 86%, #ffffff 14%);
+      border-color: rgba(17, 24, 39, 0.35);
+      color: #111827;
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .quiz-result {
+      display: none;
+      border: 0;
+      border-radius: 12px;
+      background: transparent;
+      padding: 16px;
+    }
+
+    .quiz-result.show {
+      display: block;
+    }
+
+    .quiz-score {
+      font-size: clamp(2.5rem, 7vw, 3.6rem);
+      margin: 0;
+      font-family: "Futura Bold", "Futura", sans-serif;
+      color: var(--quiz-title-color);
+    }
+
+    .quiz-result-copy {
+      margin: 6px 0 0;
+      color: var(--quiz-muted-color);
+    }
+
+    .quiz-share-status {
+      margin-top: 10px;
+      color: var(--quiz-muted-color);
+      font-size: 0.84rem;
+      min-height: 1.2em;
+    }
+
     /* Tablet layout */
     @media (max-width: 980px) {
       .page { padding: 18px 12px 14px; gap: 14px; }
@@ -416,6 +720,10 @@
       .dot { width: 12px; height: 12px; margin-left: -3px; }
       footer { justify-content: center; text-align: center; gap: 8px; }
       .control-group { justify-content: center; }
+      .quiz-panel { border-radius: 12px 12px 0 0; padding: 14px 10px 18px; min-height: 70vh; }
+      .quiz-title { font-size: 1.05rem; }
+      .quiz-question { font-size: 0.94rem; }
+      .quiz-option { font-size: 0.89rem; }
     }
 
     /* Small phone layout */
@@ -527,15 +835,113 @@
           <option value="dark">Dark</option>
         </select>
       </div>
-      <div id="madeBy">Made with ❤️ by <a id="designerLink" href="https://www.instagram.com/mattprina_design/" target="_blank" rel="noopener noreferrer">Matt Prina Design</a></div>
+      <div id="madeBy">Made with <button type="button" class="heart-trigger" id="heartTrigger" aria-label="Open Olympics trivia">❤️</button> by <a id="designerLink" href="https://www.instagram.com/mattprina_design/" target="_blank" rel="noopener noreferrer">Matt Prina Design</a></div>
     </footer>
   </main>
+
+  <section class="easter-shell" id="easterShell" aria-hidden="true">
+    <div class="quiz-panel" id="quizPanel">
+      <button type="button" class="quiz-close" id="quizClose" aria-label="Close trivia quiz">×</button>
+      <header class="quiz-header">
+        <h2 class="quiz-title">Olympics Trivia</h2>
+        <p class="quiz-subtitle">10 questions. Test your Olympic knowledge.</p>
+      </header>
+
+      <section class="quiz-card" id="quizCard">
+        <div class="quiz-tracker" id="quizTracker" aria-label="Quiz score tracker"></div>
+        <div class="quiz-progress" id="quizProgress"></div>
+        <p class="quiz-question" id="quizQuestion"></p>
+        <div class="quiz-options" id="quizOptions"></div>
+        <div class="quiz-feedback" id="quizFeedback"></div>
+        <div class="quiz-actions">
+          <button type="button" class="btn primary" id="quizNext" disabled>Next</button>
+        </div>
+      </section>
+
+      <section class="quiz-result" id="quizResult">
+        <p class="quiz-score" id="quizScore"></p>
+        <p class="quiz-result-copy" id="quizResultCopy"></p>
+        <div class="quiz-actions">
+          <button type="button" class="btn" id="quizShare">Share Score</button>
+          <button type="button" class="btn" id="quizCopyLink">Share Quiz Link</button>
+          <button type="button" class="btn primary" id="quizRestart">Play Again</button>
+        </div>
+        <div class="quiz-share-status" id="quizShareStatus"></div>
+      </section>
+    </div>
+  </section>
 
   <script>
     const REFRESH_MS = 10 * 60 * 1000;
     const MEDALS_JSON_URL = "medals.json";
     const THEME_STORAGE_KEY = "olympics_theme";
     const LANGUAGE_STORAGE_KEY = "olympics_language";
+    const QUIZ_QUERY_KEY = "quiz";
+    const QUIZ_SHARE_BASE_URL = "https://olympics-quiz-og.prina-matthew.workers.dev/share";
+
+    const QUIZ_QUESTION_COUNT = 10;
+    const OLYMPICS_QUIZ_POOL = [
+      {
+        question: "Which city hosted the 2018 Winter Olympics?",
+        options: ["PyeongChang", "Sochi", "Vancouver", "Turin"],
+        answer: 0,
+        context: "PyeongChang, South Korea hosted the 2018 Winter Games."
+      },
+      {
+        question: "How often are the Winter Olympics held?",
+        options: ["Every 2 years", "Every 3 years", "Every 4 years", "Every 5 years"],
+        answer: 2,
+        context: "Winter Olympics run on a four-year cycle, alternating with Summer Games every two years."
+      },
+      {
+        question: "What do the five Olympic rings symbolize?",
+        options: ["Five winter sports", "Five continents", "Five original host cities", "Five ceremonies"],
+        answer: 1,
+        context: "The rings represent the union of the five inhabited continents."
+      },
+      {
+        question: "Which sport is known as the fastest on ice in the Winter Olympics?",
+        options: ["Figure skating", "Speed skating", "Ice hockey", "Curling"],
+        answer: 1,
+        context: "Speed skaters race at very high speeds on long and short tracks."
+      },
+      {
+        question: "In curling, what is the target area called?",
+        options: ["Circle", "House", "Ring", "Zone"],
+        answer: 1,
+        context: "The concentric target circles in curling are called the house."
+      },
+      {
+        question: "Which country has historically won the most Winter Olympic medals overall?",
+        options: ["Germany", "United States", "Norway", "Canada"],
+        answer: 2,
+        context: "Norway has led the historical Winter Olympics medal table for many years."
+      },
+      {
+        question: "Biathlon combines cross-country skiing with which other discipline?",
+        options: ["Ski jumping", "Shooting", "Snowboarding", "Speed skating"],
+        answer: 1,
+        context: "Biathlon athletes alternate ski laps with rifle shooting rounds."
+      },
+      {
+        question: "What is the name of the weighted object pushed in curling?",
+        options: ["Stone", "Puck", "Disc", "Broom"],
+        answer: 0,
+        context: "Teams slide polished granite stones toward the house."
+      },
+      {
+        question: "How many players from one team are usually on the ice in Olympic ice hockey (including goalie)?",
+        options: ["5", "6", "7", "8"],
+        answer: 1,
+        context: "A hockey side has six players on the ice: five skaters plus one goalie."
+      },
+      {
+        question: "Milano-Cortina will host which edition of the Winter Olympics?",
+        options: ["24th", "25th", "26th", "27th"],
+        answer: 1,
+        context: "Milano-Cortina 2026 is the XXV Olympic Winter Games (25th edition)."
+      }
+    ];
 
     const FALLBACK_MEDALS = [
       { noc: "NOR", country: "Norway", gold: 8, silver: 3, bronze: 7 },
@@ -940,7 +1346,16 @@
       sortBy: "total",
       language: "en",
       theme: "light",
-      fetchedAt: null
+      fetchedAt: null,
+      easterOpen: false,
+      quizQuestions: [],
+      quizIndex: 0,
+      quizScore: 0,
+      quizSelected: null,
+      quizComplete: false,
+      quizRevealed: false,
+      quizHistory: [],
+      scrollLockY: 0
     };
     const COUNTRY_NAME_CACHE = {};
 
@@ -1149,7 +1564,11 @@
       document.getElementById("officialLink").textContent = t.officialLink;
       document.getElementById("langLabel").textContent = t.language;
       document.getElementById("themeLabel").textContent = t.theme;
-      document.getElementById("madeBy").innerHTML = `${t.madeWith} <a id="designerLink" href="https://www.instagram.com/mattprina_design/" target="_blank" rel="noopener noreferrer">Matt Prina Design</a>`;
+      const heartButtonHtml = '<button type="button" class="heart-trigger" id="heartTrigger" aria-label="Open Olympics trivia">❤️</button>';
+      const madeWithCopy = t.madeWith.includes("❤️")
+        ? t.madeWith.replace("❤️", heartButtonHtml)
+        : `${t.madeWith} ${heartButtonHtml}`;
+      document.getElementById("madeBy").innerHTML = `${madeWithCopy} <a id="designerLink" href="https://www.instagram.com/mattprina_design/" target="_blank" rel="noopener noreferrer">Matt Prina Design</a>`;
 
       const themePicker = document.getElementById("themePicker");
       themePicker.options[0].text = t.light;
@@ -1169,6 +1588,216 @@
       const sourceTime = new Date(state.fetchedAt);
       const stamp = sourceTime.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
       status.textContent = `${t.updated}: ${stamp}`;
+    }
+
+    function buildQuizRound() {
+      const pool = [...OLYMPICS_QUIZ_POOL];
+      for (let i = pool.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+      return pool.slice(0, Math.min(QUIZ_QUESTION_COUNT, pool.length));
+    }
+
+    function resetQuiz() {
+      state.quizQuestions = buildQuizRound();
+      state.quizIndex = 0;
+      state.quizScore = 0;
+      state.quizSelected = null;
+      state.quizComplete = false;
+      state.quizRevealed = false;
+      state.quizHistory = Array(state.quizQuestions.length).fill(null);
+      document.getElementById("quizShareStatus").textContent = "";
+      renderQuiz();
+    }
+
+    function renderQuiz() {
+      const quizCard = document.getElementById("quizCard");
+      const quizResult = document.getElementById("quizResult");
+      const nextBtn = document.getElementById("quizNext");
+      const tracker = document.getElementById("quizTracker");
+      const questions = state.quizQuestions;
+
+      if (state.quizComplete) {
+        quizCard.style.display = "none";
+        quizResult.classList.add("show");
+        const total = questions.length;
+
+        let medal = "🥉";
+        let message = "Nice run. You know your Winter Olympics.";
+        if (state.quizScore === total) {
+          medal = "🥇";
+          message = "Perfect score. Olympic-level trivia performance.";
+        } else if (state.quizScore >= 5) {
+          medal = "🥈";
+          message = "Strong run. You know your Winter Olympics.";
+        } else {
+          message = "Good try. Better luck next time.";
+        }
+        document.getElementById("quizScore").textContent = `${state.quizScore}/${total}`;
+        document.getElementById("quizResultCopy").textContent = `${message} ${medal}`;
+        return;
+      }
+
+      quizCard.style.display = "block";
+      quizResult.classList.remove("show");
+
+      const item = questions[state.quizIndex];
+      tracker.innerHTML = state.quizHistory
+        .map((result, idx) => {
+          const isCurrent = result === null && idx === state.quizIndex && !state.quizRevealed;
+          const currentClass = isCurrent ? " current" : "";
+          if (result === true) return '<span class="quiz-track-dot correct" aria-label="Correct">✓</span>';
+          if (result === false) return '<span class="quiz-track-dot wrong" aria-label="Incorrect">✕</span>';
+          return `<span class="quiz-track-dot${currentClass}" aria-label="Unanswered"></span>`;
+        })
+        .join("");
+
+      document.getElementById("quizProgress").textContent = `Question ${state.quizIndex + 1} of ${questions.length}`;
+      document.getElementById("quizQuestion").textContent = item.question;
+      const options = document.getElementById("quizOptions");
+      const feedback = document.getElementById("quizFeedback");
+
+      options.innerHTML = item.options
+        .map((opt, idx) => {
+          const selectedClass = state.quizSelected === idx ? " selected" : "";
+          const revealCorrect = state.quizRevealed && idx === item.answer ? " correct" : "";
+          const revealWrong = state.quizRevealed && state.quizSelected === idx && idx !== item.answer ? " wrong" : "";
+          const disabledAttr = state.quizRevealed ? " disabled" : "";
+          return `<button type="button" class="quiz-option${selectedClass}${revealCorrect}${revealWrong}" data-idx="${idx}"${disabledAttr}>${opt}</button>`;
+        })
+        .join("");
+
+      if (!state.quizRevealed) {
+        feedback.className = "quiz-feedback";
+        feedback.textContent = "";
+        nextBtn.textContent = "Check Answer";
+        nextBtn.disabled = state.quizSelected === null;
+      } else {
+        const correct = state.quizSelected === item.answer;
+        const correctAnswer = item.options[item.answer];
+        feedback.className = `quiz-feedback ${correct ? "correct" : "wrong"}`;
+        feedback.textContent = `${correct ? "Correct." : `Incorrect. Correct answer: ${correctAnswer}.`} ${item.context || ""}`;
+        nextBtn.textContent = state.quizIndex === questions.length - 1 ? "Finish" : "Continue";
+        nextBtn.disabled = false;
+      }
+    }
+
+    async function createScoreCardBlob() {
+      const canvas = document.createElement("canvas");
+      canvas.width = 1200;
+      canvas.height = 630;
+      const ctx = canvas.getContext("2d");
+
+      ctx.fillStyle = "#f3f4f6";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#111827";
+      ctx.font = "bold 56px Futura, Arial, sans-serif";
+      ctx.fillText("Olympics Trivia Score", 80, 140);
+      ctx.font = "bold 140px Futura, Arial, sans-serif";
+      ctx.fillText(`${state.quizScore} / ${state.quizQuestions.length}`, 80, 320);
+      ctx.font = "36px Futura, Arial, sans-serif";
+      ctx.fillStyle = "#6b7280";
+      ctx.fillText("2026 Winter Olympics Medal Leaderboard", 80, 390);
+      ctx.fillStyle = "#111827";
+      ctx.font = "28px Futura, Arial, sans-serif";
+      ctx.fillText(window.location.href, 80, 470);
+      const rings = document.querySelector(".podium-rings-img");
+      if (rings) ctx.drawImage(rings, 980, 70, 120, 80);
+
+      return await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+    }
+
+    async function shareQuizScore() {
+      const status = document.getElementById("quizShareStatus");
+      status.textContent = "";
+      const shareUrl = quizShareLink({ includeScore: true });
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        status.textContent = "Score link copied.";
+      } catch (_) {
+        if (navigator.share) {
+          await navigator.share({ title: "Olympics Trivia Score", url: shareUrl });
+          status.textContent = "Shared link.";
+          return;
+        }
+        status.textContent = "Could not copy score link.";
+      }
+    }
+
+    async function copySiteLink() {
+      const status = document.getElementById("quizShareStatus");
+      try {
+        await navigator.clipboard.writeText(quizShareLink({ includeScore: false }));
+        status.textContent = "Link copied.";
+      } catch (_) {
+        status.textContent = "Could not copy link.";
+      }
+    }
+
+    function quizDeepLink() {
+      const url = new URL(window.location.href);
+      url.searchParams.set(QUIZ_QUERY_KEY, "1");
+      return url.toString();
+    }
+
+    function quizShareLink({ includeScore }) {
+      const url = new URL(QUIZ_SHARE_BASE_URL);
+      url.searchParams.set("quiz", "1");
+      if (includeScore) {
+        url.searchParams.set("score", String(state.quizScore));
+        url.searchParams.set("total", String(state.quizQuestions.length || QUIZ_QUESTION_COUNT));
+      }
+      return url.toString();
+    }
+
+    function shouldOpenQuizFromUrl() {
+      try {
+        const url = new URL(window.location.href);
+        return url.searchParams.get(QUIZ_QUERY_KEY) === "1";
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function lockPageScroll() {
+      state.scrollLockY = window.scrollY || document.documentElement.scrollTop || 0;
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${state.scrollLockY}px`;
+      document.body.style.left = "0";
+      document.body.style.right = "0";
+      document.body.style.width = "100%";
+      document.body.style.overflow = "hidden";
+    }
+
+    function unlockPageScroll() {
+      const restoreY = state.scrollLockY || 0;
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      document.body.style.width = "";
+      document.body.style.overflow = "";
+      window.scrollTo(0, restoreY);
+    }
+
+    function openEasterQuiz() {
+      if (state.easterOpen) return;
+      state.easterOpen = true;
+      lockPageScroll();
+      const shell = document.getElementById("easterShell");
+      shell.classList.add("open");
+      shell.setAttribute("aria-hidden", "false");
+      resetQuiz();
+    }
+
+    function closeEasterQuiz() {
+      if (!state.easterOpen) return;
+      state.easterOpen = false;
+      const shell = document.getElementById("easterShell");
+      shell.classList.remove("open");
+      shell.setAttribute("aria-hidden", "true");
+      unlockPageScroll();
     }
 
     function setSortableHeader(id, label, key) {
@@ -1229,12 +1858,27 @@
       applyStrings();
       document.getElementById("languagePicker").value = state.language;
       document.getElementById("themePicker").value = state.theme;
+      resetQuiz();
 
       document.addEventListener("click", (e) => {
         const trigger = e.target.closest(".sort-head");
-        if (!trigger) return;
-        state.sortBy = trigger.dataset.sort || "total";
-        render();
+        if (trigger) {
+          state.sortBy = trigger.dataset.sort || "total";
+          render();
+          return;
+        }
+
+        const heart = e.target.closest("#heartTrigger");
+        if (heart) {
+          openEasterQuiz();
+          return;
+        }
+
+        const option = e.target.closest(".quiz-option");
+        if (option && !state.quizComplete && !state.quizRevealed) {
+          state.quizSelected = Number(option.dataset.idx);
+          renderQuiz();
+        }
       });
 
       document.getElementById("languagePicker").addEventListener("change", (e) => {
@@ -1254,8 +1898,40 @@
         } catch (_) {}
       });
 
+      document.getElementById("quizClose").addEventListener("click", closeEasterQuiz);
+      document.getElementById("quizRestart").addEventListener("click", resetQuiz);
+      document.getElementById("quizShare").addEventListener("click", shareQuizScore);
+      document.getElementById("quizCopyLink").addEventListener("click", copySiteLink);
+      document.getElementById("quizNext").addEventListener("click", () => {
+        if (state.quizComplete || state.quizSelected === null) return;
+        const current = state.quizQuestions[state.quizIndex];
+
+        if (!state.quizRevealed) {
+          const isCorrect = state.quizSelected === current.answer;
+          state.quizHistory[state.quizIndex] = isCorrect;
+          if (isCorrect) state.quizScore += 1;
+          state.quizRevealed = true;
+          renderQuiz();
+          return;
+        }
+
+        if (state.quizIndex >= state.quizQuestions.length - 1) {
+          state.quizComplete = true;
+          renderQuiz();
+          return;
+        }
+        state.quizSelected = null;
+        state.quizRevealed = false;
+        state.quizIndex += 1;
+        renderQuiz();
+      });
+
       loadData();
       setInterval(loadData, REFRESH_MS);
+
+      if (shouldOpenQuizFromUrl()) {
+        requestAnimationFrame(() => openEasterQuiz());
+      }
     }
 
     init();

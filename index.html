@@ -678,6 +678,44 @@
       min-height: 1.2em;
     }
 
+    .conami-overlay {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 120;
+      overflow: hidden;
+    }
+
+    .conami-overlay.show {
+      display: flex;
+    }
+
+    .conami-medal {
+      font-size: min(42vw, 420px);
+      line-height: 1;
+      user-select: none;
+      position: relative;
+      z-index: 2;
+    }
+
+    .confetti {
+      position: absolute;
+      top: -18px;
+      width: 10px;
+      height: 18px;
+      opacity: 0.95;
+      animation: confetti-fall linear forwards;
+      z-index: 1;
+    }
+
+    @keyframes confetti-fall {
+      0% { transform: translateY(-5vh) rotate(0deg); }
+      100% { transform: translateY(110vh) rotate(720deg); }
+    }
+
     /* Tablet layout */
     @media (max-width: 980px) {
       .page { padding: 18px 12px 14px; gap: 14px; }
@@ -871,6 +909,10 @@
     </div>
   </section>
 
+  <div class="conami-overlay" id="conamiOverlay" aria-hidden="true">
+    <div class="conami-medal" aria-label="Gold medal">🥇</div>
+  </div>
+
   <script>
     const REFRESH_MS = 10 * 60 * 1000;
     const MEDALS_JSON_URL = "medals.json";
@@ -878,6 +920,7 @@
     const LANGUAGE_STORAGE_KEY = "olympics_language";
     const QUIZ_QUERY_KEY = "quiz";
     const QUIZ_SHARE_BASE_URL = "https://olympics-quiz-og.prina-matthew.workers.dev/share";
+    const CONAMI_CODE = ["arrowup", "arrowup", "arrowdown", "arrowdown", "arrowleft", "arrowright", "arrowleft", "arrowright", "b", "a"];
 
     const QUIZ_QUESTION_COUNT = 10;
     const OLYMPICS_QUIZ_POOL = [
@@ -1357,6 +1400,8 @@
       quizHistory: [],
       scrollLockY: 0
     };
+    let conamiIndex = 0;
+    let confettiTimer = null;
     const COUNTRY_NAME_CACHE = {};
 
     function flagFromNoc(noc) {
@@ -1811,6 +1856,39 @@
       unlockPageScroll();
     }
 
+    function launchConfetti() {
+      const overlay = document.getElementById("conamiOverlay");
+      const colors = ["#f2c14e", "#b36a1f", "#e5e7eb", "#22c55e", "#3b82f6", "#ef4444"];
+      for (let i = 0; i < 26; i += 1) {
+        const piece = document.createElement("span");
+        piece.className = "confetti";
+        piece.style.left = `${Math.random() * 100}%`;
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.animationDuration = `${2.2 + Math.random() * 2.2}s`;
+        piece.style.animationDelay = `${Math.random() * 0.2}s`;
+        overlay.appendChild(piece);
+        setTimeout(() => piece.remove(), 5000);
+      }
+    }
+
+    function openConamiOverlay() {
+      const overlay = document.getElementById("conamiOverlay");
+      overlay.classList.add("show");
+      overlay.setAttribute("aria-hidden", "false");
+      launchConfetti();
+      if (confettiTimer) clearInterval(confettiTimer);
+      confettiTimer = setInterval(launchConfetti, 450);
+    }
+
+    function closeConamiOverlay() {
+      const overlay = document.getElementById("conamiOverlay");
+      overlay.classList.remove("show");
+      overlay.setAttribute("aria-hidden", "true");
+      overlay.querySelectorAll(".confetti").forEach((el) => el.remove());
+      if (confettiTimer) clearInterval(confettiTimer);
+      confettiTimer = null;
+    }
+
     function setSortableHeader(id, label, key) {
       const th = document.getElementById(id);
       th.innerHTML = `
@@ -1930,6 +2008,23 @@
         state.quizIndex += 1;
         renderQuiz();
       });
+
+      document.addEventListener("keydown", (event) => {
+        const key = String(event.key || "").toLowerCase();
+        if (key === CONAMI_CODE[conamiIndex]) {
+          conamiIndex += 1;
+          if (conamiIndex === CONAMI_CODE.length) {
+            conamiIndex = 0;
+            openConamiOverlay();
+          }
+        } else {
+          conamiIndex = key === CONAMI_CODE[0] ? 1 : 0;
+        }
+
+        if (key === "escape") closeConamiOverlay();
+      });
+
+      document.getElementById("conamiOverlay").addEventListener("click", closeConamiOverlay);
 
       loadData();
       setInterval(loadData, REFRESH_MS);
